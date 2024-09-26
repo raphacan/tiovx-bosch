@@ -29,6 +29,7 @@ else
     IDIRS       += $(PDK_PATH)/packages/ti/osal
 endif
 IDIRS       += $(APP_UTILS_PATH)
+IDIRS       += $(VISION_APPS_PATH)
 
 ifeq ($(HOST_COMPILER),TIARMCGT)
 CFLAGS += --display_error_number

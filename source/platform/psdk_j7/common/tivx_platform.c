@@ -8,8 +8,8 @@
  */
 
 #include <tivx_platform_psdk.h>
-#include <utils/console_io/include/app_log.h>
 #include <utils/timer/include/app_timer.h>
+#include "utils/console_io/app_log.h"
 
 const char *tivxPlatformGetEnv(const char *env_var);
 

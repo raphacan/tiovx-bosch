@@ -29,6 +29,9 @@ IDIRS       += $(TIOVX_PATH)/source/platform/psdk_j7/common
 IDIRS       += $(TIOVX_PATH)/source/platform/os/posix
 IDIRS       += $(APP_UTILS_PATH)
 
+IDIRS       += $(CUSTOM_PLATFORM_PATH)/psdk_j7/common
+IDIRS       += $(VISION_APPS_PATH)
+
 DEFS += TARGET_HLOS
 
 include $(FINALE)
