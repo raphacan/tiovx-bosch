@@ -124,6 +124,7 @@ DEFINE_SAFE_CASTS(threshold, Threshold, THRESHOLD)
 #ifdef VX_TYPE_USER_DATA_OBJECT
 DEFINE_SAFE_CASTS(user_data_object, UserDataObject, USER_DATA_OBJECT)
 #endif
+DEFINE_SAFE_CASTS(producer, producer, PRODUCER)
 
 static vx_reference getRefAs(vx_reference ref, vx_enum type, vx_status *status)
 {

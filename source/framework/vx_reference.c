@@ -60,6 +60,8 @@ static vx_enum_type_size_t g_reference_enum_type_sizes[] = {
     {(vx_enum)VX_TYPE_NODE,          sizeof(tivx_node_t)},
     {(vx_enum)VX_TYPE_PARAMETER,     sizeof(tivx_parameter_t)},
     {(vx_enum)VX_TYPE_KERNEL,        sizeof(tivx_kernel_t)},
+    {(vx_enum)VX_TYPE_PRODUCER,      sizeof(tivx_producer_t)},
+    //{(vx_enum)VX_TYPE_CONSUMER,      sizeof(tivx_consumer_t)},    
     {(vx_enum)TIVX_TYPE_SUPER_NODE,  sizeof(tivx_super_node_t)},
     /* data objects */
     {(vx_enum)VX_TYPE_ARRAY,         sizeof(tivx_array_t)},

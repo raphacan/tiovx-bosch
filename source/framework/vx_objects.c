@@ -332,6 +332,18 @@ vx_reference ownObjectAlloc(vx_enum type)
                     TIVX_KERNEL_MAX_OBJECTS, (uint32_t)sizeof(tivx_kernel_t),
                     "TIVX_KERNEL_MAX_OBJECTS");
                 break;
+            case (vx_enum)VX_TYPE_PRODUCER:
+                ref = (vx_reference)ownAllocObject(
+                    (uint8_t *)g_tivx_objects.kernel, g_tivx_objects.isKernelUse,
+                    TIVX_PRODUCER_MAX_OBJECTS, (uint32_t)sizeof(tivx_producer_t),
+                    "TIVX_PRODUCER_MAX_OBJECTS");
+                break;
+            //case (vx_enum)VX_TYPE_CONSUMER:
+            //    ref = (vx_reference)ownAllocObject(
+            //        (uint8_t *)g_tivx_objects.kernel, g_tivx_objects.isKernelUse,
+            //        TIVX_CONSUMER_MAX_OBJECTS, (uint32_t)sizeof(tivx_consumer_t),
+            //        "TIVX_CONSUMER_MAX_OBJECTS");
+            //    break;                                  
             case (vx_enum)VX_TYPE_ARRAY:
                 ref = (vx_reference)ownAllocObject(
                     (uint8_t *)g_tivx_objects.array, g_tivx_objects.isArrayUse,

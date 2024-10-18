@@ -388,6 +388,15 @@ extern "C" {
  */
 #define TIVX_KERNEL_MAX_OBJECTS            (128u)
 
+/*! \brief Max number producer objects supported
+ * \ingroup group_vx_misc_cfg
+ */
+#define TIVX_PRODUCER_MAX_OBJECTS            (5u)
+
+/*! \brief Max number consumer objects supported
+ * \ingroup group_vx_misc_cfg
+ */
+#define TIVX_CONSUMER_MAX_OBJECTS            (5u)
 
 /*
  * Meta configuration resources
