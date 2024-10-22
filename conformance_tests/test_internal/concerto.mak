@@ -29,6 +29,7 @@ IDIRS       += $(HOST_ROOT)/conformance_tests/kernels/include
 IDIRS       += $(HOST_ROOT)/conformance_tests/kernels/test_kernels/include
 IDIRS       += $(HOST_ROOT)/conformance_tests/test_tiovx/utils
 IDIRS       += $(HOST_ROOT)/conformance_tests/test_tiovx
+IDIRS       += ${HOST_ROOT}/utils/include
 
 ifeq ($(HOST_COMPILER),TIARMCGT)
 CFLAGS += --display_error_number

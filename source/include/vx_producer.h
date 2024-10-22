@@ -1,14 +1,20 @@
 #ifndef VX_PRODUCER_H_
 #define VX_PRODUCER_H_
 
-#define IPPC_SHEM_ENABLED
+#include <vx_internal.h>
+#include <tivx_utils_ipc_ref_xfer.h>
+#include <pthread.h>
+
+// #define IPPC_SHEM_ENABLED
+
+#define MAX_NB_OF_CONSUMERS (4u)
+#define OVXGW_MAX_CLIENTS (5u)
+#define OVXGW_MAX_NUM_REFS (32U)
+#define OVXGW_MAX_BUFFER_POOL_SIZE (5U)
 
 #ifdef __cplusplus
 extern "C" {
 #endif    
-    
-    #define MAX_NB_OF_CONSUMERS   4u
-    #define IPPC_CONFIG_MAX_PORTS 8u
 
     typedef enum
     {
@@ -34,23 +40,39 @@ extern "C" {
         uint32_t  last_buffer;
     } producer_generic_payload_t;
 
-    //consumer->producer message (1->1)
-    typedef struct
-    {
-        uint32_t ovx_buffer_index;
-        uint32_t last_buffer;
-    } consumer_generic_payload_t;
-
     typedef struct
     {
         // number of total object array items; set to zero if reference is not object array
-        uint8_t num_items;
+        uint32_t num_items;
         // number representing the element index for object array; set to zero if reference is not an object array item
         uint8_t item_index;
         // flag to indicate if this is the last reference to be exchanged with the consumer
         uint8_t last_reference;
         tivx_utils_ref_ipc_msg_t ipc_message_item[OVXGW_MAX_NUM_REFS];
     } ovx_buffer_meta_payload_t;
+
+    //producer->consumers message (1->N)
+    typedef struct
+    {
+        /* the generic buffer constain the buffer ID and additional meta/supplementary */
+        producer_generic_payload_t generic;
+        /* specific to IPPC SHEM 
+        used only at init to specify:
+        - the port ID, they are fixed by the IPPC itself per application
+        - the consumer number: id incremented every time a new connection has been established
+        - the openvx buffer references for the export itself
+        */
+        uint32_t m_backchannel_port; 
+        uint32_t m_consumer_num;
+        ovx_buffer_meta_payload_t m_ovx_buffer_meta[OVXGW_MAX_BUFFER_POOL_SIZE * OVXGW_MAX_NUM_REFS];
+    } producer_payload_t;
+
+    //consumer->producer message (1->1)
+    typedef struct
+    {
+        uint32_t ovx_buffer_index;
+        uint32_t last_buffer;
+    } consumer_generic_payload_t;
     
     typedef struct
     {
@@ -61,6 +83,7 @@ extern "C" {
            this can differ from the communication protocol itself --> to check */
         vx_uint16                  max_consumers;
         vx_uint16                  nb_receiver_ready;
+        vx_uint16                  nb_of_buffers;
         producer_backchannel_cxt_t consumer_list[MAX_NB_OF_CONSUMERS];
 
         pthread_t broadcast_thread;
@@ -76,8 +99,8 @@ extern "C" {
         vx_streaming_cb_t                 streaming_cb;
         vx_notify_cb_t                    notify_cb;
 #ifdef IPPC_SHEM_ENABLED
-        ippc_shmem_sontext_t              shem_ctx;
         ippc_sender_context_t             shem_sender_ctx;
+        SIppcShmemContext                 shem_ctx;
         ippc_receiver_context_t           shem_receiver_ctx;
 #elif IPPC_SOCKET_ENABLED
 

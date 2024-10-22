@@ -270,6 +270,11 @@ typedef struct _vx_object_array *vx_object_array;
  */
 typedef struct _vx_tensor * vx_tensor;
 
+/*! \brief The producer Object. producer is a strongly-typed container of OpenVX data-objects.
+ * \ingroup group_producer
+ */
+typedef struct _vx_producer *vx_producer;
+
 /*! \brief A Boolean value.
  * This allows 0 to be FALSE, as it is in C, and any non-zero to be TRUE.
  * \code

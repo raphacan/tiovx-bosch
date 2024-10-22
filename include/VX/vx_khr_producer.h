@@ -45,8 +45,6 @@ extern "C"
 
 #define VX_MAX_ACCESS_POINT_NAME 20
 
-    typedef struct _vx_producer * vx_producer;
-
     /**
      * \brief Custom callback function for dequeuing references from the producer graph.
      *
@@ -82,7 +80,7 @@ extern "C"
     typedef vx_status (*vxProducerEnqueueCallback)(
         vx_graph     graph,
         vx_uint32    graph_parameter_index,
-        vx_reference enqueue_ref[],
+        vx_reference enqueue_ref,
         vx_uint32    num_enqueue_refs);
 
     /**
@@ -217,7 +215,7 @@ extern "C"
      * disconnected consumer and will also release all the buffers that were used and locked by this consumer.
      *
      */
-    VX_API_ENTRY void VX_API_CALL vxRegisterConsumerConnectionNotifications(
+    VX_API_ENTRY vx_status VX_API_CALL vxRegisterConsumerConnectionNotifications(
         const vx_producer               producer,
         vx_producer_connect_notify_f    on_consumer_connection_cb,
         vx_producer_disconnect_notify_f on_consumer_disconnect_cb);
@@ -257,7 +255,7 @@ extern "C"
      */
     VX_API_ENTRY vx_status VX_API_CALL vxProducerShutdown(vx_producer producer, vx_uint32 max_timeout);
 
-    VX_API_ENTRY vx_status VX_API_CALL vxReleaseProducer(vx_producer *producer);
+    VX_API_ENTRY vx_status VX_API_CALL vxReleaseProducer(vx_producer* producer);
     
 #ifdef __cplusplus
 }

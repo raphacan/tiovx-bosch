@@ -20,6 +20,7 @@ TARGET      := vx_framework
 TARGETTYPE  := library
 CSOURCES    := $(call all-c-files)
 IDIRS       += $(HOST_ROOT)/source/include
+IDIRS       += $(HOST_ROOT)/utils/include
 DEFS        += LDRA_UNTESTABLE_CODE
 
 ifeq ($(HOST_COMPILER),TIARMCGT)
@@ -28,6 +29,11 @@ endif
 
 ifeq ($(HOST_COMPILER), $(filter $(HOST_COMPILER), GCC_LINUX_ARM GCC_QNX_ARM))
 CFLAGS += -Wno-sizeof-pointer-memaccess
+endif
+
+ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), R5F C66 C71 C7120 C7504 C7524))
+CSOURCES_EXCLUDE := vx_producer.c
+CSOURCES := $(filter-out $(CSOURCES_EXCLUDE), $(CSOURCES))
 endif
 
 ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), X86 x86_64 C66))
