@@ -1,5 +1,4 @@
 #include <vx_internal.h>
-#include <vx_consumer.h>
 
 static vx_status ownDestructConsumer(vx_reference ref)
 {

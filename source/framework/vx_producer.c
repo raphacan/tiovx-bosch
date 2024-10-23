@@ -1,5 +1,4 @@
 #include <vx_internal.h>
-#include <vx_producer.h>
 
 static void check_ippc_clients_connected(vx_producer producer)
 {
@@ -9,13 +8,15 @@ static void check_ippc_clients_connected(vx_producer producer)
         if (
 #ifdef IPPC_SHEM_ENABLED
             (vx_status)VX_SUCCESS == ippc_sender_receiver_ready(&producer->shem_sender_ctx.m_sender, i) &&
+#else
+            ((vx_bool)vx_false_e) &&
 #endif
             (producer->internals.consumer_list[i].m_state == NOT_CONNECTED)
         )
         {
             producer->internals.consumer_list[i].m_state = INIT;
             producer->internals.nb_receiver_ready++;
-            VX_PRINT(VX_ZONE_ERROR, "new incoming consumer %u is ready, total number of consumers %u \n", i, producer->internals.nb_receiver_ready);
+            VX_PRINT(VX_ZONE_INFO, "new incoming consumer %u is ready, total number of consumers %u \n", i, producer->internals.nb_receiver_ready);
         }
     }     
 }
@@ -107,76 +108,100 @@ static void* producer_broadcast_thread(void* arg)
     vx_uint32    num_ready = 0;
     producer_payload_t* payload = NULL;
     vx_reference replacement_ref_to_enqueue = NULL;
+    vx_bool shutdown = (vx_bool)vx_false_e;
 
-    //while(shutdown == 0)
+    while((vx_bool)vx_true_e != shutdown)
     {
-        /* wait for graph to output a buffer */
-        producer->streaming_cb.dequeue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, 
-                                       dequeued_refs, &num_ready);
-        // buffer ID changes, e.g. we are dequeueing
-        producer->internals.sequence_num++;
-        // check if at least one receiver is available or if one has connected
-        check_ippc_clients_connected(producer);
-        if ((0 < producer->internals.nb_receiver_ready) && (true == get_buffer_with_status(producer, replacement_ref_to_enqueue)))
+        switch(producer->graph_state)
         {
-            /* enqueue the spare reference to keep the graph running */
-            producer->streaming_cb.enqueue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, replacement_ref_to_enqueue, num_ready);
-#ifdef IPPC_SHEM_ENABLED
-            /* fetch the payload pointer to write into */
-            ippc_shem_payload_pointer(&producer->shem_sender_ctx, sizeof(producer_payload_t), (void*)&payload);
-#endif
-            /* write the generic payload: buffer id and supplementary */       
-            payload->generic.ovx_buffer_index = get_buffer_id(dequeued_refs[0], producer);
-            size_t suppl_size = 0;
-            producer->streaming_cb.meta_transmit(producer->internals.graph,
-                                                 dequeued_refs[0],
-                                                 payload->generic.ovx_supplementary_data,
-                                                 sizeof(payload->generic.ovx_supplementary_data),
-                                                 &suppl_size);
-            /*init new receiver if there is, by feeding the payload with the vx_reference meta information */
-            for (uint32_t i = 0U; i < producer->internals.max_consumers; i++)
+            case VX_PROD_STATE_GRAPH_INIT:
             {
-                /* if one of the consumer is newly connected */
-                if ((producer->internals.consumer_list[i].m_state ==INIT))
-                {
-                    VX_PRINT(VX_ZONE_INFO, "Producer - send buffer metadata for consumer: %u\n", i);
-                    // set the meta via the export interface
-                    fill_vxreference_meta(producer, payload->m_ovx_buffer_meta);
-#ifdef IPPC_SHEM_ENABLED
-                    SIppcPortMap * port_map = ippc_get_port_by_recv_index(&producer->shem_ctx, i);
-                    payload->m_consumer_num = i; // index is enough to set up connection on the other side
-                    payload->m_backchannel_port = port_map->m_port_id; // offset by 1
-                    // set up backchannel context
-                    producer->internals.consumer_list[i].m_consumer_num = i;
-#endif
-                    //launch backchannel thread, where we attach to the receiver of backchannel port
-                    int thread_status = pthread_create(&producer->internals.consumer_list[i].m_thread, NULL, producer_bck_thread, (void*)producer);
-                    if (thread_status != 0)
-                    {
-                        VX_PRINT(VX_ZONE_ERROR,"Failed to create backchannel thread for consumer %u\n", i);
-                    }
-                    else
-                    {
-                        producer->internals.consumer_list[i].m_state = RUNNING;
-                        VX_PRINT(VX_ZONE_INFO,"consumer %u backchannel is ready, going to RUNNING state\n", i);
-                    }
-                }
+                VX_PRINT(VX_ZONE_INFO, "PRODUCER %s: graph state VX_PROD_STATE_GRAPH_INIT!\n", producer->internals.name);
+                producer->graph_state = VX_PROD_STATE_GRAPH_RUN;
+                break;
             }
-#ifdef IPPC_SHEM_ENABLED
-            /* finalize the sending by broacasting the payload */
-            vx_status status = ippc_shem_send(&producer->shem_sender_ctx);
-            if ((vx_status)VX_SUCCESS != status)
+
+            case VX_PROD_STATE_GRAPH_RUN:
             {
-                VX_PRINT(VX_ZONE_ERROR, "Failed to send consumer message; enqueue bufer again\n");
-                set_buffer_status(producer, dequeued_refs[0]);
-                producer->streaming_cb.enqueue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, dequeued_refs[0], num_ready);
-            }  
+                // THIS IS PURELY FOR TESTING AND WILL BE REMOVED IN FINAL CHANGES
+                tivxTaskWaitMsecs(5000);
+                VX_PRINT(VX_ZONE_INFO, "PRODUCER %s: graph state VX_PROD_STATE_GRAPH_RUN for sequence!\n", producer->internals.name, producer->internals.sequence_num);
+                /* wait for graph to output a buffer */
+                // producer->streaming_cb.dequeue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, 
+                //                             dequeued_refs, &num_ready);
+                // buffer ID changes, e.g. we are dequeueing
+                producer->internals.sequence_num++;
+                // check if at least one receiver is available or if one has connected
+                check_ippc_clients_connected(producer);
+                if ((0 < producer->internals.nb_receiver_ready) && (true == get_buffer_with_status(producer, replacement_ref_to_enqueue)))
+                {
+                    /* enqueue the spare reference to keep the graph running */
+                    producer->streaming_cb.enqueue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, replacement_ref_to_enqueue, num_ready);
+#ifdef IPPC_SHEM_ENABLED
+                    /* fetch the payload pointer to write into */
+                    ippc_shem_payload_pointer(&producer->shem_sender_ctx, sizeof(producer_payload_t), (void*)&payload);
+#endif
+                    /* write the generic payload: buffer id and supplementary */       
+                    payload->generic.ovx_buffer_index = get_buffer_id(dequeued_refs[0], producer);
+                    size_t suppl_size = 0;
+                    producer->streaming_cb.meta_transmit(producer->internals.graph,
+                                                        dequeued_refs[0],
+                                                        payload->generic.ovx_supplementary_data,
+                                                        sizeof(payload->generic.ovx_supplementary_data),
+                                                        &suppl_size);
+                    /*init new receiver if there is, by feeding the payload with the vx_reference meta information */
+                    for (uint32_t i = 0U; i < producer->internals.max_consumers; i++)
+                    {
+                        /* if one of the consumer is newly connected */
+                        if ((producer->internals.consumer_list[i].m_state ==INIT))
+                        {
+                            VX_PRINT(VX_ZONE_INFO, "Producer - send buffer metadata for consumer: %u\n", i);
+                            // set the meta via the export interface
+                            fill_vxreference_meta(producer, payload->m_ovx_buffer_meta);
+#ifdef IPPC_SHEM_ENABLED
+                            SIppcPortMap * port_map = ippc_get_port_by_recv_index(&producer->shem_ctx, i);
+                            payload->m_consumer_num = i; // index is enough to set up connection on the other side
+                            payload->m_backchannel_port = port_map->m_port_id; // offset by 1
+                            // set up backchannel context
+                            producer->internals.consumer_list[i].m_consumer_num = i;
+#endif
+                            //launch backchannel thread, where we attach to the receiver of backchannel port
+                            int thread_status = pthread_create(&producer->internals.consumer_list[i].m_thread, NULL, producer_bck_thread, (void*)producer);
+                            if (thread_status != 0)
+                            {
+                                VX_PRINT(VX_ZONE_ERROR,"Failed to create backchannel thread for consumer %u\n", i);
+                            }
+                            else
+                            {
+                                producer->internals.consumer_list[i].m_state = RUNNING;
+                                VX_PRINT(VX_ZONE_INFO,"consumer %u backchannel is ready, going to RUNNING state\n", i);
+                            }
+                        }
+                    }
+#ifdef IPPC_SHEM_ENABLED
+                    /* finalize the sending by broacasting the payload */
+                    vx_status status = ippc_shem_send(&producer->shem_sender_ctx);
+                    if ((vx_status)VX_SUCCESS != status)
+                    {
+                        VX_PRINT(VX_ZONE_ERROR, "Failed to send consumer message; enqueue bufer again\n");
+                        set_buffer_status(producer, dequeued_refs[0]);
+                        producer->streaming_cb.enqueue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, dequeued_refs[0], num_ready);
+                    }  
 #endif          
-        }
-        else
-        {
-            /* return directly the buffer into the producer*/
-            producer->streaming_cb.enqueue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, dequeued_refs[0], num_ready);
+                }
+                else
+                {
+                    /* return directly the buffer into the producer*/
+                    // producer->streaming_cb.enqueue(producer->internals.graph, producer->ref_to_export.graph_parameter_index, dequeued_refs[0], num_ready);
+                }
+                break;
+            }
+            case VX_PROD_STATE_GRAPH_FLUSH:
+            {
+                VX_PRINT(VX_ZONE_INFO, "PRODUCER %s: graph state VX_PROD_STATE_GRAPH_RUN!\n", producer->internals.name);
+                shutdown = (vx_bool)vx_true_e;
+                break;
+            }
         }
     }
     return NULL;
@@ -239,6 +264,8 @@ VX_API_ENTRY vx_producer VX_API_CALL vxCreateProducer(vx_graph graph, const vx_p
         producer->internals.graph = graph;
         producer->internals.sequence_num = 0;
         producer->internals.total_sequences = 0;
+
+        producer->graph_state = VX_PROD_STATE_GRAPH_INIT;
 #ifdef IPPC_SHEM_ENABLED
         status = ippc_shmem_init(&producer->shem_ctx, producer->internals.access_point_name, producer->internals.nb_of_buffers, 
                         sizeof(producer_payload_t), sizeof(consumer_generic_payload_t));
@@ -281,5 +308,7 @@ VX_API_ENTRY vx_status VX_API_CALL vxProducerStart(vx_producer producer)
 
 VX_API_ENTRY vx_status VX_API_CALL vxProducerShutdown(vx_producer producer, vx_uint32 max_timeout)
 {
+    producer->graph_state = VX_PROD_STATE_GRAPH_FLUSH;
+    VX_PRINT(VX_ZONE_INFO, "PRODUCER %s: graph state VX_PROD_STATE_GRAPH_FLUSH!\n", producer->internals.name);
     return ((vx_status)VX_SUCCESS);
 }

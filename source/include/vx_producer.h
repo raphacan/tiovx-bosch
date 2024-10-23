@@ -1,7 +1,6 @@
 #ifndef VX_PRODUCER_H_
 #define VX_PRODUCER_H_
 
-#include <vx_internal.h>
 #include <tivx_utils_ipc_ref_xfer.h>
 #include <pthread.h>
 
@@ -21,6 +20,13 @@ extern "C" {
         RUNNING          = 3U,
         STOPPED          = 4U
     } consumer_state_t;
+
+    typedef enum
+    {
+        VX_PROD_STATE_GRAPH_INIT  = 0x0,
+        VX_PROD_STATE_GRAPH_RUN   = 0x1,
+        VX_PROD_STATE_GRAPH_FLUSH = 0x2,
+    } vx_producer_state;
 
     typedef struct
     {
@@ -87,12 +93,12 @@ extern "C" {
         pthread_t broadcast_thread;
         vx_uint32 sequence_num;
         vx_uint32 total_sequences;
-    } internal_data_t;
+    } prod_internal_data_t;
 
     typedef struct _vx_producer{
-
+        vx_producer_state                 graph_state;
         tivx_reference_t                  base;
-        internal_data_t                   internals;
+        prod_internal_data_t              internals;
         vx_graph_parameter_queue_params_t ref_to_export;
         vx_streaming_cb_t                 streaming_cb;
         vx_notify_cb_t                    notify_cb;

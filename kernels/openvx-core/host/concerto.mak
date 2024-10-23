@@ -8,7 +8,7 @@ CSOURCES    := $(call all-c-files)
 IDIRS       += $(HOST_ROOT)/kernels/openvx-core/include
 IDIRS       += $(CUSTOM_KERNEL_PATH)/include
 IDIRS       += $(TIOVX_PATH)/source/include
-
+IDIRS       += $(TIOVX_PATH)/utils/include
 
 include $(FINALE)
 

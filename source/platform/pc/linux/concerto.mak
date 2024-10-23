@@ -28,7 +28,7 @@ CSOURCES    := \
 	$(COMMON_FILES_REL_PATH)/vx_target_on_host_cpu.c \
     tivx_platform.c
 
-IDIRS += $(TIOVX_PATH)/source/include $(COMMON_FILES_BASE_PATH)
+IDIRS += $(TIOVX_PATH)/source/include $(COMMON_FILES_BASE_PATH) $(TIOVX_PATH)/utils/include
 IDIRS += $(APP_UTILS_PATH)
 IDIRS += $(VISION_APPS_PATH)/platform/$(SOC)/rtos
 IDIRS += $(TIOVX_PATH)/source/platform/os/posix
