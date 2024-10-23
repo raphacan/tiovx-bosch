@@ -2,7 +2,8 @@
 
 static vx_status ownDestructConsumer(vx_reference ref)
 {
-    return ((vx_status)VX_SUCCESS); 
+    return (ownReleaseReferenceInt(
+        &ref, (vx_enum)VX_TYPE_CONSUMER, (vx_enum)VX_EXTERNAL, NULL));
 }
 
 VX_API_ENTRY vx_status VX_API_CALL vxReleaseConsumer(vx_consumer* consumer)
@@ -19,6 +20,34 @@ VX_API_ENTRY vx_status VX_API_CALL vxConsumerAttachGraphParameter( const vx_cons
 
 static void* consumer_receiver_thread(void* arg)
 {
+    vx_consumer consumer = (vx_consumer)arg;
+    vx_bool shutdown = (vx_bool)vx_false_e;
+    while((vx_bool)vx_true_e != shutdown)
+    {
+        switch(consumer->graph_state)
+        {
+            case VX_CONS_STATE_GRAPH_INIT:
+            {
+                VX_PRINT(VX_ZONE_INFO, "CONSUMER %s: graph state VX_CONS_STATE_GRAPH_INIT!\n", consumer->internals.name);
+                consumer->graph_state = VX_CONS_STATE_GRAPH_RUN;
+                break;
+            }
+
+            case VX_CONS_STATE_GRAPH_RUN:
+            {
+                // THIS IS PURELY FOR TESTING AND WILL BE REMOVED IN FINAL CHANGES
+                tivxTaskWaitMsecs(5000);
+                VX_PRINT(VX_ZONE_INFO, "CONSUMER %s: graph state VX_CONS_STATE_GRAPH_RUN for sequence!\n", consumer->internals.name, consumer->internals.sequence_num);
+                break;
+            }
+            case VX_CONS_STATE_GRAPH_FLUSH:
+            {
+                VX_PRINT(VX_ZONE_INFO, "CONSUMER %s: graph state VX_CONS_STATE_GRAPH_RUN!\n", consumer->internals.name);
+                shutdown = (vx_bool)vx_true_e;
+                break;
+            }
+        }
+    }
     return NULL;
 }
 
@@ -40,6 +69,7 @@ VX_API_ENTRY vx_consumer VX_API_CALL vxCreateConsumer(vx_graph graph, const vx_c
         (void)snprintf(consumer->internals.name, VX_MAX_CONSUMER_NAME, params->name);
         (void)snprintf(consumer->internals.access_point_name , VX_MAX_ACCESS_POINT_NAME, params->access_point_name);      
         consumer->internals.graph = graph;
+        consumer->graph_state = VX_CONS_STATE_GRAPH_INIT;
 
         if(status!=(vx_status)VX_SUCCESS)
         {
@@ -69,5 +99,7 @@ VX_API_ENTRY vx_status VX_API_CALL vxConsumerStart(vx_consumer consumer)
 
 VX_API_ENTRY vx_status VX_API_CALL vxConsumerShutdown(vx_consumer consumer, vx_uint32 max_timeout)
 {
+    consumer->graph_state = VX_CONS_STATE_GRAPH_FLUSH;
+    VX_PRINT(VX_ZONE_INFO, "CONSUMER %s: graph state VX_CONS_STATE_GRAPH_FLUSH!\n", consumer->internals.name);
     return ((vx_status)VX_SUCCESS);
 }
