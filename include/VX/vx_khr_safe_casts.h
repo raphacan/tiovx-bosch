@@ -71,6 +71,7 @@ __MAKE_SAFE_CASTS__(threshold, Threshold)
 __MAKE_SAFE_CASTS__(user_data_object, UserDataObject)
 #endif
 __MAKE_SAFE_CASTS__(producer, Producer)
+__MAKE_SAFE_CASTS__(consumer, Consumer)
 
 #ifdef  __cplusplus
 }

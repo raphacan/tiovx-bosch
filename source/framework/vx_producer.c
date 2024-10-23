@@ -1,8 +1,6 @@
 #include <vx_internal.h>
 #include <vx_producer.h>
 
-static vx_status ownDestructProducer(vx_reference ref);
-
 static void check_ippc_clients_connected(vx_producer producer)
 {
       //if one of the receiver is ready, register it and the sender can start sending data
@@ -105,7 +103,7 @@ static void* producer_bck_thread(void* arg)
 static void* producer_broadcast_thread(void* arg)
 {
     vx_producer producer = (vx_producer)arg;
-    vx_reference dequeued_refs[OVXGW_MAX_NUM_REFS] = {0};
+    vx_reference dequeued_refs[VX_MAX_NUM_REFERENCES] = {0};
     vx_uint32    num_ready = 0;
     producer_payload_t* payload = NULL;
     vx_reference replacement_ref_to_enqueue = NULL;

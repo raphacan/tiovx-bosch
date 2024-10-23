@@ -9,8 +9,6 @@
 
 #define MAX_NB_OF_CONSUMERS (4u)
 #define OVXGW_MAX_CLIENTS (5u)
-#define OVXGW_MAX_NUM_REFS (32U)
-#define OVXGW_MAX_BUFFER_POOL_SIZE (5U)
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +46,7 @@ extern "C" {
         uint8_t item_index;
         // flag to indicate if this is the last reference to be exchanged with the consumer
         uint8_t last_reference;
-        tivx_utils_ref_ipc_msg_t ipc_message_item[OVXGW_MAX_NUM_REFS];
+        tivx_utils_ref_ipc_msg_t ipc_message_item[VX_MAX_NUM_REFERENCES];
     } ovx_buffer_meta_payload_t;
 
     //producer->consumers message (1->N)
@@ -64,7 +62,7 @@ extern "C" {
         */
         uint32_t m_backchannel_port; 
         uint32_t m_consumer_num;
-        ovx_buffer_meta_payload_t m_ovx_buffer_meta[OVXGW_MAX_BUFFER_POOL_SIZE * OVXGW_MAX_NUM_REFS];
+        ovx_buffer_meta_payload_t m_ovx_buffer_meta[VX_MAX_BUFFER_POOL_SIZE * VX_MAX_NUM_REFERENCES];
     } producer_payload_t;
 
     //consumer->producer message (1->1)

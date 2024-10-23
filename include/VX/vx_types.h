@@ -275,6 +275,11 @@ typedef struct _vx_tensor * vx_tensor;
  */
 typedef struct _vx_producer *vx_producer;
 
+/*! \brief The consumer Object. consumer is a strongly-typed container of OpenVX data-objects.
+ * \ingroup group_consumer
+ */
+typedef struct _vx_consumer *vx_consumer;
+
 /*! \brief A Boolean value.
  * This allows 0 to be FALSE, as it is in C, and any non-zero to be TRUE.
  * \code
