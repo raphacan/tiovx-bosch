@@ -65,6 +65,15 @@ VX_API_ENTRY vx_status VX_API_CALL vxReleaseContext(vx_context *context);
  */
 VX_API_ENTRY vx_context VX_API_CALL vxGetContext(vx_reference reference);
 
+/*! \brief Retrieves the scope of a reference
+ * \param [in] reference The reference from which to retrieve the scope reference.
+ * \param [in] status    status value to indicate whether retrieval of scope reference was successfull.
+ * \ingroup group_context
+ * \return the scope reference of the input reference. The user has the responsibility to check 
+ *         whether the reference returned is of the expected type
+ */
+ VX_API_ENTRY vx_reference VX_API_CALL vxReferenceGetScope(vx_reference reference, vx_status *status);
+
 /*! \brief Queries the context for some specific information.
  * \param [in] context The reference to the context.
  * \param [in] attribute The attribute to query. Use a <tt>\ref vx_context_attribute_e</tt>.
