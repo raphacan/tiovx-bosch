@@ -26,6 +26,7 @@
 #define TIVX_REF_TEST_MAX_NUM_ADDR  (TIVX_PYRAMID_MAX_LEVEL_OBJECTS)
 
 TESTCASE(tivxReference, CT_VXContext, ct_setup_vx_context, 0)
+TESTCASE(tivxReference2, CT_VXContext, ct_setup_vx_context, 0)
 
 TEST(tivxReference, testQueryTimestamp)
 {
@@ -452,6 +453,31 @@ TEST(tivxReference, negativeTesttivxReferenceImportHandle2)
     VX_CALL(vxReleaseImage(&image));
 }
 
+TEST(tivxReference2, testGetScope)
+{
+    vx_context context = context_->vx_context_;
+    vx_image image = vxCreateImage(context, 64, 48, VX_DF_IMAGE_U8); 
+    vx_object_array arrayImages = vxCreateObjectArray(context, image, 4); 
+
+    vxReleaseImage(&image); 
+    vx_image singleImageFromObjArray = vxGetObjectArrayItem(arrayImages, 0);
+    
+    vx_status status = VX_FAILURE;
+    vx_reference scopeRef = vxReferenceGetScope(singleImageFromObjArray, &status);
+    ASSERT(status == VX_SUCCESS);
+    ASSERT(scopeRef == arrayImages); 
+    vxReleaseImage(&singleImageFromObjArray);
+    vxReleaseObjectArray(&arrayImages);
+}
+
+TEST(tivxReference2, negativeTestGetScope)
+{
+    vx_status status = VX_FAILURE;
+    vx_reference scopeRef = vxReferenceGetScope(NULL, &status);
+    ASSERT(status == VX_ERROR_INVALID_REFERENCE);
+    ASSERT(scopeRef == NULL); 
+}
+
 TESTCASE_TESTS(
     tivxReference,
     testQueryTimestamp,
@@ -483,4 +509,10 @@ TESTCASE_TESTS(
     negativeTesttivxReferenceImportHandle,
     negativeTesttivxReferenceImportHandle1,
     negativeTesttivxReferenceImportHandle2
+)
+
+TESTCASE_TESTS(
+    tivxReference2,
+    testGetScope,
+    negativeTestGetScope
 )
