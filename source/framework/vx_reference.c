@@ -1360,47 +1360,6 @@ VX_API_ENTRY vx_bool VX_API_CALL tivxIsReferenceMetaFormatEqual(vx_reference ref
     return boolStatus;
 }
 
-VX_API_ENTRY vx_reference VX_API_CALL vxReferenceGetScope(vx_reference reference, vx_status *status)
-{
-    vx_reference scopeRef = NULL;
-    if (NULL != reference)
-    {
-        if(ownIsValidReference(reference) == (vx_bool)vx_true_e)
-        {
-            if (NULL != reference->scope)
-            {
-                if(ownIsValidReference(reference->scope) == (vx_bool)vx_true_e)
-                {
-                    scopeRef = reference->scope;
-                    *status = (vx_status)VX_SUCCESS;
-                }
-                else
-                {
-                    VX_PRINT(VX_ZONE_ERROR, "Invalid scope reference\n");
-                    *status = (vx_status)VX_ERROR_INVALID_SCOPE;
-                }
-            }
-            else
-            {
-                VX_PRINT(VX_ZONE_ERROR, "Scope reference is NULL\n");
-                *status = (vx_status)VX_ERROR_INVALID_SCOPE;
-            }
-        }
-        else
-        {
-            VX_PRINT(VX_ZONE_ERROR, "Invalid reference passed\n");
-            *status = (vx_status)VX_ERROR_INVALID_REFERENCE;
-        }
-    }
-    else
-    {
-        VX_PRINT(VX_ZONE_ERROR, "Invalid reference passed\n");
-        *status = (vx_status)VX_ERROR_INVALID_REFERENCE;
-    }
-
-    return scopeRef;
-}
-
 vx_bool tivxIsReferenceVirtual(vx_reference ref)
 {
     vx_bool ret = (vx_bool)vx_false_e;
