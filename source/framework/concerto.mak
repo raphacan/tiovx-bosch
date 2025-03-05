@@ -40,7 +40,7 @@ CFLAGS += -Wno-sizeof-pointer-memaccess
 endif
 
 ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), R5F C66 C71 C7120 C7504 C7524))
-CSOURCES_EXCLUDE := vx_producer.c vx_consumer.c
+CSOURCES_EXCLUDE := vx_producer.c vx_consumer.c vx_producer_sck.c vx_producer_ippc.c
 CSOURCES := $(filter-out $(CSOURCES_EXCLUDE), $(CSOURCES))
 endif
 

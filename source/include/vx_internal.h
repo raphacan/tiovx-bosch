@@ -73,6 +73,8 @@
 #include <vx_array.h>
 #include <vx_user_data_object.h>
 #if defined(LINUX) || defined(QNX)
+#include <vx_producer_sck.h>
+#include <vx_producer_ippc.h>
 #include <vx_producer.h>
 #include <vx_consumer.h>
 #endif
@@ -204,4 +206,3 @@ static inline void tivx_uint64_to_uint32(uint64_t val, volatile uint32_t *h, vol
 #endif
 
 #endif
-
