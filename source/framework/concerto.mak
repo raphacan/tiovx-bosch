@@ -46,8 +46,18 @@ endif
 
 ifeq ($(CONNECTOR_TP), IPPC_SHEM)
 DEFS += IPPC_SHEM_ENABLED
-else
+DEFS += BUILD_GW
+endif
+ifeq ($(CONNECTOR_TP), SOCKET)
 DEFS += SOCKET_ENABLED
+DEFS += BUILD_GW
+endif
+
+ifeq ($(findstring BUILD_GW, $(DEFS)),)
+$(info Building without $(CONNECTOR_TP))
+CSOURCES := $(filter-out vx_producer.c vx_consumer.c, $(CSOURCES))
+else
+$(info Building with consumer producer)
 endif
 
 ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), X86 x86_64 C66))
