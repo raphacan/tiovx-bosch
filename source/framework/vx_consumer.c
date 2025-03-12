@@ -55,7 +55,6 @@ static int32_t send_buffer_release_message(vx_consumer consumer, void* message_b
     msg->consumer_id        = consumer->consumer_id;
 #endif
     msg->buffer_id          = buffer_id;
-    msg->last_buffer        = 0;
 
     // check if this is the last buffer which has been received - either dequeued or dropped
     if ((consumer->last_buffer == 1) &&
@@ -66,7 +65,7 @@ static int32_t send_buffer_release_message(vx_consumer consumer, void* message_b
             VX_ZONE_INFO,
             "CONSUMER: last buffer has been processed, wait before putting pipeline in flush mode%s",
             "\n");
-        msg->last_buffer = 1;
+        msg->last_buffer = 1U;
     }
 
 #ifdef IPPC_SHEM_ENABLED
@@ -219,19 +218,20 @@ void *consumer_backchannel(void* arg)
                 l_send_msg = ippc_shem_payload_pointer(&consumer->m_sender_ctx, sizeof(vx_cons_msg_content_t), &ippc_status);
                 if (ippc_status == E_IPPC_OK)
                 {
-                     VX_PRINT(
+                    VX_PRINT(
                         VX_ZONE_INFO,
                         "CONSUMER: current buffer ID %d last buffer ID %d dequeued, last buffer flag %d \n",
                         buffer_id,
                         consumer->last_buffer_id,
                         consumer->last_buffer);
+                    l_send_msg->last_buffer = consumer->last_buffer;
                     send_buffer_release_message(consumer, l_send_msg, buffer_id, VX_MSGTYPE_BUF_RELEASE);
                 }
                 pthread_mutex_unlock(&consumer->buffer_mutex);
             }
         }
 
-        if (consumer->last_buffer)
+        if (consumer->last_buffer || (VX_CONS_STATE_FLUSH == consumer->state))
         {
             break;
         }
@@ -245,11 +245,11 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
     EIppcStatus l_status = (EIppcStatus)E_IPPC_OK;
     vx_consumer consumer = (vx_consumer) consumer_p;
     vx_prod_msg_content_t* const l_received_message = (vx_prod_msg_content_t*)data_p;
-
+    
     //if the consumer is ready to communicate, send the back channel port id to the producer
     if ((vx_bool)vx_false_e == consumer->init_done)
     {
-        VX_PRINT(VX_ZONE_INFO, "CONSUMER %u: attaching to backhannel \n", consumer->consumer_id);
+        VX_PRINT(VX_ZONE_INFO, "CONSUMER %u (%s): attaching to backhannel \n", consumer->consumer_id, consumer->name);
         /* feed the data for the sender */
         consumer->m_sender_ctx.m_msg_size = sizeof(vx_cons_msg_content_t);
         const SIppcPortMap *l_port = ippc_get_port_by_recv_index(consumer->ippc_port, consumer->consumer_id);
@@ -289,17 +289,17 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
             status = consumer->subscriber_cb.createCallback(consumer->graph_obj, consumer->refs, consumer->num_refs);
             if (status != VX_SUCCESS)
             {
-                VX_PRINT(VX_ZONE_ERROR, "CONSUMER: application create graph failed%s", "\n");
+                VX_PRINT(VX_ZONE_ERROR, "CONSUMER (%s): application create graph failed \n", consumer->name);
             }
             else
             {
                 status = VX_GW_STATUS_CONSUMER_GRAPH_READY; 
-                VX_PRINT(VX_ZONE_INFO, "CONSUMER: application create graph success%s", "\n");
+                VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): application create graph success", consumer->name);
                 // open a new backchannel thread to dequeue stuff
                 int thread_status = pthread_create(&consumer->backchannel_thread, NULL, consumer_backchannel, (void*)(consumer));
                 if (thread_status != 0)
                 {
-                    VX_PRINT(VX_ZONE_ERROR, "CONSUMER: failed to create consumer_backchannel client thread%s", "\n");
+                    VX_PRINT(VX_ZONE_ERROR, "CONSUMER (%s): failed to create consumer_backchannel client thread", consumer->name);
                 }
                 else
                 {
@@ -314,9 +314,10 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
         if (1U == l_received_message->last_buffer)
         {
             // if last buffer was sent, producer needs to be notified by setting last buffer flag, response needs to be sent regardless of whether receiver was addressed via mask or not
-            consumer->last_buffer = 1;
+            consumer->last_buffer = 1U;
+            consumer->last_buffer_transmitted = 1;
             consumer->last_buffer_id = l_received_message->buffer_id;
-            VX_PRINT(VX_ZONE_INFO, "CONSUMER: Received last buffer id %d \n", consumer->last_buffer_id);
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): Received last buffer id %d \n", consumer->name, consumer->last_buffer_id);
         }            
 
         if (l_received_message->mask & (1U << consumer->consumer_id)) // mask applies to consumer
@@ -325,7 +326,8 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
             {
                 VX_PRINT(
                     VX_ZONE_INFO,
-                    "CONSUMER: Received buffer ID (%d), last buffer %d mask %d, \n",
+                    "CONSUMER (%s): Received buffer ID (%d), last buffer %d mask %d\n",
+                    consumer->name,
                     l_received_message->buffer_id,
                     l_received_message->last_buffer, l_received_message->mask);
                 // check if metadata from IPC was received and apply it to consumer reference
@@ -334,26 +336,29 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
                     status = consumer->subscriber_cb.storeMetadataCallback(
                         consumer->graph_obj, consumer->refs[l_received_message->buffer_id], &l_received_message->metadata_buffer, l_received_message->metadata_size);
                 }
-                
+
                 VX_PRINT(
                     VX_ZONE_INFO,
-                    "CONSUMER: enqueue the incoming buffer id: %d with ref: %p into the pipeline as input buffer, last "
-                    "buffer %d \n",
+                    "CONSUMER (%s): enqueue the incoming buffer id: %d with ref: %p into the pipeline as input buffer, last "
+                    "buffer %d mask %d \n",
+                    consumer->name,
                     l_received_message->buffer_id,
                     consumer->refs[l_received_message->buffer_id],
-                    l_received_message->last_buffer);
+                    l_received_message->last_buffer, 
+                    l_received_message->mask);
 
-                status = consumer->subscriber_cb.enqueueCallback(consumer->graph_obj, (vx_reference)consumer->refs[l_received_message->buffer_id]);
+                status = consumer->subscriber_cb.enqueueCallback(consumer->graph_obj, (vx_reference)consumer->refs[l_received_message->buffer_id]);            
             }
             else // drop reference   
             {
-                VX_PRINT(VX_ZONE_INFO, "CONSUMER: Received buffer ID (%d) mask %d set for this consumer, but not latest message, drop ref \n", l_received_message->buffer_id, l_received_message->mask);
+                VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): Received buffer ID (%d) mask %d set for this consumer, but not latest message, drop ref \n", 
+                    consumer->name, l_received_message->buffer_id, l_received_message->mask);
                 status = VX_GW_STATUS_CONSUMER_REF_DROP;
             }  
         }
         else // mask not set, respond to producer only if it was last buffer sent by producer
         {
-            VX_PRINT(VX_ZONE_INFO, "CONSUMER: Received buffer ID (%d) mask %d not set for this consumer, return success without notifying Producer\n", l_received_message->buffer_id, l_received_message->mask);
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): Received buffer ID (%d) mask %d not set for this consumer, return success without notifying Producer\n", consumer->name, l_received_message->buffer_id, l_received_message->mask);
             if(1U == l_received_message->last_buffer) // only in case of last buffer, notify producer
             {
                 status = VX_GW_STATUS_CONSUMER_REF_DROP;
@@ -363,7 +368,23 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
 
     if (0 > status)
     {
-        VX_PRINT(VX_ZONE_ERROR, "CONSUMER: MSG RECEIVE STATUS: FAILED.%s", "\n");
+        VX_PRINT(VX_ZONE_ERROR, "CONSUMER (%s): MSG RECEIVE STATUS: FAILED.", consumer->name);
+    }
+    else if (consumer->state == VX_CONS_STATE_FLUSH)
+    {
+        // buffer was not enqueued, transmit the buffer back to the producer immediately and shutdown
+        consumer->last_buffer_dropped = 1U;
+
+        vx_cons_msg_content_t* l_send_msg;
+        pthread_mutex_lock(&consumer->buffer_mutex);
+        l_send_msg = ippc_shem_payload_pointer(&consumer->m_sender_ctx, sizeof(vx_cons_msg_content_t), &l_status);
+        l_send_msg->last_buffer = 1U;
+        if(E_IPPC_OK == l_status)
+        {
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): CONSUMER DROPS FRAME and sets last buffer flag, BUFFER ID %d, %s.", consumer->name, l_received_message->buffer_id, "\n");
+            send_buffer_release_message(consumer, l_send_msg, l_received_message->buffer_id, VX_MSGTYPE_BUF_RELEASE);
+        }
+        pthread_mutex_unlock(&consumer->buffer_mutex);
     }
     else if (VX_GW_STATUS_CONSUMER_REF_DROP == status)
     {
@@ -373,10 +394,10 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
         vx_cons_msg_content_t* l_send_msg;
         pthread_mutex_lock(&consumer->buffer_mutex);
         l_send_msg = ippc_shem_payload_pointer(&consumer->m_sender_ctx, sizeof(vx_cons_msg_content_t), &l_status);
-
+        l_send_msg->last_buffer = 0U;
         if(E_IPPC_OK == l_status)
         {
-            VX_PRINT(VX_ZONE_INFO, "CONSUMER: CONSUMER DROPS FRAME, BUFFER ID %d, %s.", l_received_message->buffer_id, "\n");
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): CONSUMER DROPS FRAME, BUFFER ID %d, %s.", consumer->name, l_received_message->buffer_id, "\n");
             send_buffer_release_message(consumer, l_send_msg, l_received_message->buffer_id, VX_MSGTYPE_BUF_RELEASE);
         }
         pthread_mutex_unlock(&consumer->buffer_mutex);
@@ -387,10 +408,10 @@ void consumer_msg_handler(const void * consumer_p, const void * data_p, uint8_t 
         vx_cons_msg_content_t* l_send_msg;
         pthread_mutex_lock(&consumer->buffer_mutex);
         l_send_msg = ippc_shem_payload_pointer(&consumer->m_sender_ctx, sizeof(vx_cons_msg_content_t), &l_status);
-
+        l_send_msg->last_buffer = 0U;
         if(E_IPPC_OK == l_status)
         {
-            VX_PRINT(VX_ZONE_INFO, "CONSUMER: send graph ready to producer, BUFFER ID %d, %s.", l_received_message->buffer_id, "\n");
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER (%s): send graph ready to producer, BUFFER ID %d, %s.", consumer->name, l_received_message->buffer_id, "\n");
             send_buffer_release_message(consumer, l_send_msg, l_received_message->buffer_id, VX_MSGTYPE_CONSUMER_CREATE_DONE);
         }
         pthread_mutex_unlock(&consumer->buffer_mutex);
@@ -494,7 +515,7 @@ static void* consumer_receiver_thread(void* arg)
 
             case VX_CONS_STATE_WAIT:
             {
-                tivxTaskWaitMsecs(2000);
+                tivxTaskWaitMsecs(100);
                 VX_PRINT(VX_ZONE_INFO, "CONSUMER: going to flush state%s", "\n");
                 consumer->state = VX_CONS_STATE_FLUSH;
             }
@@ -530,8 +551,6 @@ static void* consumer_receiver_thread(void* arg)
 
             case VX_CONS_STATE_FLUSH:
             {
-                consumer->last_buffer_transmitted = 1;
-
                 VX_PRINT(VX_ZONE_INFO, "CONSUMER: pipeline is flushed, reached normal shutdown%s", "\n");
                 shutdown = (vx_bool)vx_true_e;
             }
@@ -828,6 +847,7 @@ static int32_t handle_receive_message(vx_consumer consumer, int32_t socket_fd, u
         vx_gw_buff_id_msg* msg       = (vx_gw_buff_id_msg*)message_buffer;
 
         VX_PRINT(VX_ZONE_INFO, "CONSUMER: Graph newly created, notify producer %s.", "\n");
+        msg->last_buffer = 0U;
         status = send_buffer_release_message(consumer, message_buffer, msg->buffer_id, VX_MSGTYPE_CONSUMER_CREATE_DONE);
         if (status < 0)
         {
@@ -839,7 +859,7 @@ static int32_t handle_receive_message(vx_consumer consumer, int32_t socket_fd, u
         // buffer was not enqueued, transmit the buffer back to the producer immediately
         consumer->last_buffer_dropped = 1;
         vx_gw_buff_id_msg* msg       = (vx_gw_buff_id_msg*)message_buffer;
-
+        msg->last_buffer = 0U;
         VX_PRINT(VX_ZONE_INFO, "CONSUMER: CONSUMER DROPS FRAME, BUFFER ID %d, %s.", msg->buffer_id, "\n");
         status = send_buffer_release_message(consumer, message_buffer, msg->buffer_id, VX_MSGTYPE_BUF_RELEASE);
         if (status < 0)
@@ -1079,11 +1099,17 @@ static vx_status ownInitConsumerObject(vx_consumer consumer, const vx_consumer_p
 
     (void)snprintf(consumer->name, VX_MAX_CONSUMER_NAME, params->name);
     (void)snprintf(consumer->access_point_name , VX_MAX_ACCESS_POINT_NAME, params->access_point_name);
-
-    consumer->last_buffer   = 0;
-
-    consumer->graph_obj       = params->graph_obj;
-    consumer->subscriber_cb   = params->subscriber_cb;
+    consumer->last_buffer               = 0;
+    consumer->last_buffer_dropped       = 0;
+    consumer->last_buffer_transmitted   = 0;
+    consumer->init_done                 = vx_false_e;
+    consumer->ref_import_done           = vx_false_e;
+    consumer->num_failures              = 0;
+    consumer->graph_obj                 = params->graph_obj;
+    consumer->subscriber_cb             = params->subscriber_cb;
+    consumer->consumer_id               = params->consumer_id;
+    consumer->connect_polling_time      = params->connect_polling_time;
+    consumer->state                     = VX_CONS_STATE_DISCONNECTED;    
 
     pthread_mutexattr_t buffInfoMutexAttr;
     pthread_mutexattr_init(&buffInfoMutexAttr);
@@ -1095,8 +1121,6 @@ static vx_status ownInitConsumerObject(vx_consumer consumer, const vx_consumer_p
         return (vx_status)VX_FAILURE;
     }
 
-    consumer->consumer_id     = params->consumer_id;
-    consumer->connect_polling_time         = params->connect_polling_time;
 #ifdef IPPC_SHEM_ENABLED
     for(vx_uint32 idx = 0U; idx < IPPC_PORT_COUNT; idx++)
     {
