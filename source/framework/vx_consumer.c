@@ -185,7 +185,7 @@ void *consumer_backchannel(void* arg)
 
     VX_PRINT(VX_ZONE_INFO, "CONSUMER: Starting backchannel %s", "\n");
 
-    while(1U)
+    do
     {
         vx_uint32 num_dequeued_refs = 0U;
         vx_status status = consumer->subscriber_cb.dequeueCallback(consumer->graph_obj, dequeued_refs, &num_dequeued_refs);
@@ -230,12 +230,7 @@ void *consumer_backchannel(void* arg)
                 pthread_mutex_unlock(&consumer->buffer_mutex);
             }
         }
-
-        if (consumer->last_buffer || (VX_CONS_STATE_FLUSH == consumer->state))
-        {
-            break;
-        }
-    }
+    } while ((0U == consumer->last_buffer) && (VX_CONS_STATE_FLUSH != consumer->state));
     return NULL;
 }
 

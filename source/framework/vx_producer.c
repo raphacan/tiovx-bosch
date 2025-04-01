@@ -16,73 +16,43 @@
 
 #include <vx_internal.h>
 
-static vx_status set_buffer_status(vx_reference current_ref, producer_buffer_status status, vx_producer producer)
+static vx_status set_buffer_status(vx_int32 buffer_id, producer_buffer_status curr_status, vx_producer producer)
 {
-    uint8_t     buffer_id;
     vx_bool     found                = vx_false_e;
     vx_bool     forbidden_transition = vx_false_e;
     const char* state2string[]       = {"IN_GRAPH", "LOCKED", "FREE"};
 
     pthread_mutex_lock(&producer->buffer_mutex);
 
-    for (buffer_id = 0; buffer_id < producer->numBuffers; buffer_id++)
-    {
-        if (current_ref == (producer->refs[buffer_id].ovx_ref))
-        {
-            producer_buffer_status old_status = producer->refs[buffer_id].buffer_status;
-            found                             = vx_true_e;
+    producer_buffer_status old_status = producer->refs[buffer_id].buffer_status;
+    found                             = vx_true_e;
 
-            // only certain state transitions are allowed and are guarded for LOCKED with refcount
-            if ((old_status == IN_GRAPH) && (status == LOCKED))
+    switch(old_status)
+    {
+        case IN_GRAPH:
+        {
+            if(LOCKED == curr_status)
             {
                 // IN_GRAPH -> LOCKED: after leaving producer graph
                 producer->refs[buffer_id].refcount++;
-                producer->refs[buffer_id].buffer_status = status;
+                producer->refs[buffer_id].buffer_status = curr_status;
             }
-            else if ((old_status == LOCKED) && (status == LOCKED))
+            else if(FREE == curr_status)
             {
-                // LOCKED -> LOCKED: after being sent to more consumers
-                producer->refs[buffer_id].refcount++;
-                // base the locked count on the latest transmission therefore reset from here
-                VX_PRINT(VX_ZONE_INFO, "reset locked count for reference with id %d \n", buffer_id); 
-                producer->refs[buffer_id].locked_count = 0;
-            }
-            else if ((old_status == LOCKED) && (status == FREE))
-            {
-                // LOCKED -> FREE: after coming back from consumer or consumer timeout
-                producer->refs[buffer_id].refcount--;
-                if (producer->refs[buffer_id].refcount == 0)
-                {
-                    producer->refs[buffer_id].buffer_status = IN_GRAPH;
-                    // enqueue reference into graph from here
-                    producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[buffer_id].ovx_ref);
-                    producer->nbEnqueueFrames++;
-
-                    VX_PRINT(VX_ZONE_INFO, "enqueued back and reset locked count for reference with id %d \n", buffer_id); 
-                    producer->refs[buffer_id].locked_count = 0;
-                }
-            }
-            else if ((old_status == FREE) && (status == IN_GRAPH))
-            {
-                // FREE -> IN_GRAPH: enqueueing a fresh ref into producer
-                producer->refs[buffer_id].buffer_status = status;
-            }
-            else if ((old_status == IN_GRAPH) && (status == FREE))
-            {
-                /*
-                 * IN_GRAPH -> FREE: dequeue from graph in wait state OR
-                 * it could happen that we have a double enqueue due to a miscommunication, where a buffer is freed by 
-                 * a consumer that was not supposed to free it (buffer message overwrite while consumer whas processing it)
-                 * to prevent that, query the number of enqueues for the reference, only enqueue if not done already                
-                 * enqueue reference into graph from here, do not change its status 
-                 *
-                 * Example Usecase: 
-                 * 1. consumer gets new message (e.g. bufID 0, mask 1)
-                 * 2. consumer does time consuming copy of supplementary (during that time, producer overwrites with (e.g. bufID 1, mask 0)
-                 * 3. consumer enqueues bufID 1 (although it shouldn't but it doesn't re evaluate mask flag)
-                 * 4. consumer releases bufID 1 which producer does not expect to be released from that consumer, 
-                 * while it DOESNT release bufID 0 although producer expects that.
-                 */ 
+               /*
+                * IN_GRAPH -> FREE: dequeue from graph in wait state OR
+                * it could happen that we have a double enqueue due to a miscommunication, where a buffer is freed by 
+                * a consumer that was not supposed to free it (buffer message overwrite while consumer whas processing it)
+                * to prevent that, query the number of enqueues for the reference, only enqueue if not done already                
+                * enqueue reference into graph from here, do not change its status 
+                *
+                * Example Usecase: 
+                * 1. consumer gets new message (e.g. bufID 0, mask 1)
+                * 2. consumer does time consuming copy of supplementary (during that time, producer overwrites with (e.g. bufID 1, mask 0)
+                * 3. consumer enqueues bufID 1 (although it shouldn't but it doesn't re evaluate mask flag)
+                * 4. consumer releases bufID 1 which producer does not expect to be released from that consumer, 
+                * while it DOESNT release bufID 0 although producer expects that.
+                */ 
 
                 vx_uint32 num_enqueues = 0;
                 vx_status query_status = vxQueryReference(producer->refs[buffer_id].ovx_ref, VX_REFERENCE_ENQUEUE_COUNT, &num_enqueues, sizeof(num_enqueues));
@@ -103,59 +73,113 @@ static vx_status set_buffer_status(vx_reference current_ref, producer_buffer_sta
                     VX_PRINT(VX_ZONE_ERROR, "Failed to query the number of enqueues for reference with id %d\n", buffer_id);
                 }
             }
-            else if ((old_status == FREE) && (status == LOCKED))
+            else
+            {
+                // IN_GRAPH -> IN_GRAPH: this is handled implicitly in handle_producer_graph
+                forbidden_transition = vx_true_e;
+            }
+        }
+        break;
+
+        case LOCKED:
+        {
+            if(LOCKED == curr_status)
+            {
+                // LOCKED -> LOCKED: after being sent to more consumers
+                producer->refs[buffer_id].refcount++;
+                // base the locked count on the latest transmission therefore reset from here
+                VX_PRINT(VX_ZONE_INFO, "reset locked count for reference with id %d \n", buffer_id); 
+                producer->refs[buffer_id].locked_count = 0;
+            }
+            else if(FREE == curr_status)
+            {
+                // LOCKED -> FREE: after coming back from consumer or consumer timeout
+                producer->refs[buffer_id].refcount--;
+                if (producer->refs[buffer_id].refcount == 0)
+                {
+                    producer->refs[buffer_id].buffer_status = IN_GRAPH;
+                    // enqueue reference into graph from here
+                    producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[buffer_id].ovx_ref);
+                    producer->nbEnqueueFrames++;
+
+                    VX_PRINT(VX_ZONE_INFO, "enqueued back and reset locked count for reference with id %d \n", buffer_id); 
+                    producer->refs[buffer_id].locked_count = 0;
+                }
+            }
+            else
+            {
+                // LOCKED -> IN_GRAPH
+                forbidden_transition = vx_true_e;
+            }
+        }
+        break;
+
+        case FREE:
+        {
+            if(IN_GRAPH == curr_status)
+            {
+                // FREE -> IN_GRAPH: enqueueing a fresh ref into producer
+                producer->refs[buffer_id].buffer_status = curr_status;   
+            }
+            else if(LOCKED == curr_status)
             {
                 // FREE -> LOCKED: possible if the locked buffer is freed before the transmission to second consumer is
                 // shutdown, still we need to increase refcount to prevent buffer handling problems
                 producer->refs[buffer_id].refcount++;
-                producer->refs[buffer_id].buffer_status = status;
+                producer->refs[buffer_id].buffer_status = curr_status;
             }
             else
             {
-                // fatal error; state transition not allowed; should never get here
-                // state remains unchanged
                 // FREE -> FREE
-                // LOCKED -> IN_GRAPH
-                // IN_GRAPH -> IN_GRAPH: this is handled implicitly in handle_producer_graph
-                VX_PRINT(
-                    VX_ZONE_ERROR,
-                    "PRODUCER: Reference state transition (%s -> %s) not allowed for buffer %d!%s",
-                    state2string[old_status],
-                    state2string[status],
-                    buffer_id,
-                    "\n");
                 forbidden_transition = vx_true_e;
             }
-
-            if (producer->refs[buffer_id].buffer_status != old_status)
-            {
-                uint64_t currentTime = tivxPlatformGetTimeInUsecs();
-                VX_PRINT(
-                    VX_ZONE_REFERENCE,
-                    "PRODUCER: buffer %d found, status changed from %s to %s, refcount is %d \n",
-                    buffer_id,
-                    state2string[old_status],
-                    state2string[status],
-                    producer->refs[buffer_id].refcount);
-                VX_PRINT(
-                    VX_ZONE_REFERENCE,
-                    "PRODUCER: reference was in state %s for %llu usecs\n",
-                    state2string[old_status],
-                    currentTime - producer->refs[buffer_id].state_timestamp);
-                producer->refs[buffer_id].state_timestamp = currentTime;
-            }
-            else
-            {
-                VX_PRINT(
-                    VX_ZONE_REFERENCE,
-                    "PRODUCER: buffer %d found, status unchanged (%s), refcount is %d\n",
-                    buffer_id,
-                    state2string[old_status],
-                    producer->refs[buffer_id].refcount);
-            }
-
-            break;
         }
+        break;
+
+        default:
+        {
+            VX_PRINT(VX_ZONE_ERROR, "set_buffer_status: Invalid Buffer status %s", "\n");
+        }
+    }
+
+
+    if(vx_true_e == forbidden_transition)
+    {
+        // fatal error; state transition not allowed; should never get here
+        VX_PRINT(
+            VX_ZONE_ERROR,
+            "PRODUCER: Reference state transition (%s -> %s) not allowed for buffer %d!%s",
+            state2string[old_status],
+            state2string[curr_status],
+            buffer_id,
+            "\n");
+    }
+
+    if (producer->refs[buffer_id].buffer_status != old_status)
+    {
+        uint64_t currentTime = tivxPlatformGetTimeInUsecs();
+        VX_PRINT(
+            VX_ZONE_REFERENCE,
+            "PRODUCER: buffer %d found, status changed from %s to %s, refcount is %d \n",
+            buffer_id,
+            state2string[old_status],
+            state2string[curr_status],
+            producer->refs[buffer_id].refcount);
+        VX_PRINT(
+            VX_ZONE_REFERENCE,
+            "PRODUCER: reference was in state %s for %llu usecs\n",
+            state2string[old_status],
+            currentTime - producer->refs[buffer_id].state_timestamp);
+        producer->refs[buffer_id].state_timestamp = currentTime;
+    }
+    else
+    {
+        VX_PRINT(
+            VX_ZONE_REFERENCE,
+            "PRODUCER: buffer %d found, status unchanged (%s), refcount is %d\n",
+            buffer_id,
+            state2string[old_status],
+            producer->refs[buffer_id].refcount);
     }
 
     pthread_mutex_unlock(&producer->buffer_mutex);
@@ -233,9 +257,9 @@ static vx_int32 send_id_message_consumers(
 #elif SOCKET_ENABLED
                                             vx_gw_buff_id_msg* msg,
 #endif
-                                            buffer_info_t* ref)
+                                            vx_int32 buff_id)
 {
-    int32_t status = 0;
+    vx_int32 status = 0;
     vx_int32 sent_to_consumer = 0;
     uint32_t locked_cnt = 0U;
     uint32_t mask = 0U;
@@ -262,11 +286,11 @@ static vx_int32 send_id_message_consumers(
             if ((locked_cnt < producer->maxRefsLockedByClient) || (1U == producer->last_buffer)) // in case of last buffer, transmission of that buffer is still necessary
             {
                 mask |= (1U << i);
-                if (ref != NULL)
+                if (buff_id != -1)
                 {
                     // the position of this locking is critical, the refcount should be incremented based on the number of
                     // successfull sends
-                    status = set_buffer_status(ref->ovx_ref, LOCKED, producer);
+                    status = set_buffer_status(buff_id, LOCKED, producer);
                     if (status != VX_SUCCESS)
                     {
                         VX_PRINT(
@@ -274,7 +298,7 @@ static vx_int32 send_id_message_consumers(
                         break;
                     }
 
-                    ref->attached_to_client[i] = 1;
+                    producer->refs[buff_id].attached_to_client[i] = 1;
                 }
 
 #ifdef SOCKET_ENABLED
@@ -283,7 +307,7 @@ static vx_int32 send_id_message_consumers(
                 {
                     // copy reference sent to the consumers
                     sent_to_consumer++;
-                    if (ref != NULL)
+                    if (buff_id != -1)
                     {
                         VX_PRINT(
                             VX_ZONE_INFO,
@@ -311,9 +335,9 @@ static vx_int32 send_id_message_consumers(
 
     // in case mask is 0 (all consumers lock maximum amount of buffers allowed), 
     // free reference from here so producer can find it as an available ref
-    if ((0U == mask) && (ref != NULL))
+    if ((0U == mask) && (buff_id != -1))
     {
-        set_buffer_status(ref->ovx_ref, FREE, producer);
+        set_buffer_status(buff_id, FREE, producer);
     }
     if (msg != NULL)
     {
@@ -453,7 +477,7 @@ void producer_msg_handler(const void * producer_p, const void * data_p, uint8_t 
                     if (1U == producer->refs[buffId].attached_to_client[received_msg->consumer_id])
                     {
                         producer->refs[buffId].attached_to_client[received_msg->consumer_id] = 0U;
-                        set_buffer_status(producer->refs[buffId].ovx_ref, FREE, producer);
+                        set_buffer_status(buffId, FREE, producer);
                     }
                 } 
                 producer->consumers_list[received_msg->consumer_id].state = PROD_STATE_CLI_FLUSHED;
@@ -471,7 +495,7 @@ void producer_msg_handler(const void * producer_p, const void * data_p, uint8_t 
                 {
                     // enqueue the new buffer in the handle producer thread, here the refcount is decreased
                     producer->refs[received_msg->buffer_id].attached_to_client[received_msg->consumer_id] = 0;
-                    set_buffer_status(next_out_ref, FREE, producer);
+                    set_buffer_status(received_msg->buffer_id, FREE, producer);
                 }
                 else
                 {
@@ -562,7 +586,7 @@ static vx_bool check_ippc_clients_connected(vx_producer producer)
                 buffid_message->metadata_valid   = 0;
                 buffid_message->last_buffer      = producer->last_buffer;
                 buffid_message->metadata_size    = VX_GW_MAX_META_SIZE;
-                send_id_message_consumers(producer, buffid_message, NULL);
+                send_id_message_consumers(producer, buffid_message, -1);
                 pthread_mutex_unlock(&producer->client_mutex);
             }
         }
@@ -592,9 +616,9 @@ void* producer_connection_check_thread(void* arg)
 
 #elif SOCKET_ENABLED
 
-static int32_t send_reference_info(vx_producer producer, client_context* client)
+static vx_int32 send_reference_info(vx_producer producer, client_context* client)
 {
-    int32_t status = VX_GW_STATUS_FAILURE;
+    vx_int32 status = VX_GW_STATUS_FAILURE;
 
     if (sizeof(vx_gw_buff_desc_msg) >= SOCKET_MAX_MSG_SIZE)
     {
@@ -649,7 +673,7 @@ static int32_t send_reference_info(vx_producer producer, client_context* client)
                 status = socket_write(
                     client->socket_fd,
                     (uint8_t*)buffer_desc_msg,
-                    (int32_t*)buffer_desc_msg->ref_export_handle.fd,
+                    (vx_int32*)buffer_desc_msg->ref_export_handle.fd,
                     buffer_desc_msg->ref_export_handle.numFd);
                 if (status != SOCKET_STATUS_OK)
                 {
@@ -702,7 +726,7 @@ static int32_t send_reference_info(vx_producer producer, client_context* client)
         status = socket_write(
             client->socket_fd,
             (uint8_t*)buffer_desc_msg,
-            (int32_t*)buffer_desc_msg->ref_export_handle.fd,
+            (vx_int32*)buffer_desc_msg->ref_export_handle.fd,
             buffer_desc_msg->ref_export_handle.numFd);
 
         if (status != SOCKET_STATUS_OK)
@@ -718,9 +742,9 @@ static int32_t send_reference_info(vx_producer producer, client_context* client)
     return status;
 }
 
-static int32_t add_client(vx_producer producer, client_context* connection, uint64_t consumer_id)
+static vx_int32 add_client(vx_producer producer, client_context* connection, uint64_t consumer_id)
 {
-    int32_t      client_num = -1;
+    vx_int32      client_num = -1;
     producer_bckchannel_t* client     = NULL;
 
     pthread_mutex_lock(&producer->client_mutex);
@@ -751,7 +775,7 @@ static int32_t add_client(vx_producer producer, client_context* connection, uint
     return client_num;
 }
 
-static void drop_client(vx_producer producer, producer_bckchannel_t* client, int32_t client_num)
+static void drop_client(vx_producer producer, producer_bckchannel_t* client, vx_int32 client_num)
 {
     pthread_mutex_lock(&producer->client_mutex);
 
@@ -779,7 +803,7 @@ static void drop_client(vx_producer producer, producer_bckchannel_t* client, int
                     i,
                     producer->refs[i].buffer_status);
                 producer->refs[i].attached_to_client[client_num] = 0;
-                int32_t status = set_buffer_status(producer->refs[i].ovx_ref, FREE, producer);
+                vx_int32 status = set_buffer_status(i, FREE, producer);
                 if (status != VX_GW_STATUS_SUCCESS)
                 {
                     VX_PRINT(
@@ -802,8 +826,8 @@ static void handle_clients(void* clientPtr, void* data)
     uint8_t           message_buffer[SOCKET_MAX_MSG_SIZE];
     vx_gw_hello_msg* consumer_message;
 
-    int32_t client_num = -1;
-    int32_t status     = VX_GW_STATUS_SUCCESS;
+    vx_int32 client_num = -1;
+    vx_int32 status     = VX_GW_STATUS_SUCCESS;
 
     while (1)
     {
@@ -892,7 +916,7 @@ static void handle_clients(void* clientPtr, void* data)
                 {
                     // enqueue the new buffer in the handle producer thread, here the refcount is decreased
                     producer->refs[bufferid_message->buffer_id].attached_to_client[client_num] = 0;
-                    status = set_buffer_status(next_out_ref, FREE, producer);
+                    status = set_buffer_status(bufferid_message->buffer_id, FREE, producer);
                     if (status != VX_GW_STATUS_SUCCESS)
                     {
                         VX_PRINT(
@@ -1009,7 +1033,7 @@ static void* producer_broadcast_thread(void* arg)
                 {
                     producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[idx].ovx_ref);
                     producer->nbEnqueueFrames++;
-                    set_buffer_status(producer->refs[idx].ovx_ref, IN_GRAPH, producer);
+                    set_buffer_status(idx, IN_GRAPH, producer);
                 }
                 producer->graph_state = VX_PROD_STATE_RUN;
                 VX_PRINT(VX_ZONE_INFO, "PRODUCER %s: starting graph from inside producer!\n", producer->name);
@@ -1122,7 +1146,7 @@ static void* producer_broadcast_thread(void* arg)
                                                 producer->name,
                                                 producer->refs[j].ovx_ref);
                                             producer->refs[j].attached_to_client[i] = 0;
-                                            set_buffer_status(producer->refs[j].ovx_ref, FREE, producer);
+                                            set_buffer_status(j, FREE, producer);
                                         }
                                     }
                                 }
@@ -1147,10 +1171,10 @@ static void* producer_broadcast_thread(void* arg)
                                     producer->name,
                                     producer->nbDequeueFrames);
 #ifdef IPPC_SHEM_ENABLED
-                                vx_int32 num_messages = send_id_message_consumers(producer, buffid_message, NULL);
+                                vx_int32 num_messages = send_id_message_consumers(producer, buffid_message, -1);
                                 pthread_mutex_unlock(&producer->client_mutex);
 #elif SOCKET_ENABLED
-                                vx_int32 num_messages = send_id_message_consumers(producer, &buffid_message, NULL);
+                                vx_int32 num_messages = send_id_message_consumers(producer, &buffid_message, -1);
 #endif
                                 VX_PRINT(
                                     VX_ZONE_INFO,
@@ -1220,11 +1244,11 @@ static void* producer_broadcast_thread(void* arg)
                                     // broadcast buffer to clients/consumers
 #ifdef IPPC_SHEM_ENABLED
                                     vx_int32 sent_messages =
-                                        send_id_message_consumers(producer, buffid_message, &producer->refs[buffer_id]);
+                                        send_id_message_consumers(producer, buffid_message, buffer_id);
                                     pthread_mutex_unlock(&producer->client_mutex);
 #elif SOCKET_ENABLED
                                     vx_int32 sent_messages =
-                                        send_id_message_consumers(producer, &buffid_message, &producer->refs[buffer_id]);
+                                        send_id_message_consumers(producer, &buffid_message, buffer_id);
 #endif
                                     if (sent_messages == 0)
                                     {
@@ -1287,7 +1311,7 @@ static void* producer_broadcast_thread(void* arg)
                             // in case of error stop trying to dequeue
                             break;
                         }
-                        set_buffer_status(dequeued_refs[0], FREE, producer);
+                        set_buffer_status(get_buffer_id(dequeued_refs[0U], producer), FREE, producer);
                         producer->nbDequeueFrames += num_deque_refs;
                     }
                 }
@@ -1325,7 +1349,7 @@ static void* producer_broadcast_thread(void* arg)
 
 static vx_status ownInitProducerObject(vx_producer producer, const vx_producer_params_t* params)
 {
-    int32_t l_status = 0;
+    vx_int32 l_status = 0;
     vx_status status = (vx_status)VX_SUCCESS;
 
     (void)snprintf(producer->name, VX_MAX_PRODUCER_NAME, params->name);
@@ -1454,8 +1478,8 @@ VX_API_ENTRY vx_status VX_API_CALL vxReleaseProducer(vx_producer* producer)
     ippc_shmem_deinit(&this_producer->m_shmem_ctx, this_producer->access_point_name);
 #elif SOCKET_ENABLED
     socket_server_close(&this_producer->server);
-    pthread_mutex_destroy(&(this_producer->client_mutex));
 #endif
+    pthread_mutex_destroy(&(this_producer->client_mutex));
     return (ownReleaseReferenceInt(
         vxCastRefFromProducerP(producer), VX_TYPE_PRODUCER, (vx_enum)VX_EXTERNAL, NULL));
 }
