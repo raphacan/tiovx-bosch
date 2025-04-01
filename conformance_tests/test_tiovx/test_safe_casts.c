@@ -637,7 +637,7 @@ TEST(tivxSafeCasts, testSpecificCast)
   EXPECT_VX_OBJECT(ref, VX_TYPE_REFERENCE);
   /* downcast now the reference */
   tivx_raw_image raw_image_downcast = tivxCastRefAsRawImage(ref, &status);
-  EXPECT_VX_OBJECT(raw_image, (enum vx_type_e)TIVX_TYPE_RAW_IMAGE);
+  EXPECT_VX_OBJECT(raw_image_downcast, (enum vx_type_e)TIVX_TYPE_RAW_IMAGE);
 }
 
 TESTCASE_TESTS(
