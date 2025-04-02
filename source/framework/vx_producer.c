@@ -131,14 +131,14 @@ static vx_status set_buffer_status(vx_reference current_ref, producer_buffer_sta
             {
                 uint64_t currentTime = tivxPlatformGetTimeInUsecs();
                 VX_PRINT(
-                    VX_ZONE_REFERENCE,
+                    VX_ZONE_INFO,
                     "PRODUCER: buffer %d found, status changed from %s to %s, refcount is %d \n",
                     buffer_id,
                     state2string[old_status],
                     state2string[status],
                     producer->refs[buffer_id].refcount);
                 VX_PRINT(
-                    VX_ZONE_REFERENCE,
+                    VX_ZONE_INFO,
                     "PRODUCER: reference was in state %s for %llu usecs\n",
                     state2string[old_status],
                     currentTime - producer->refs[buffer_id].state_timestamp);
@@ -147,7 +147,7 @@ static vx_status set_buffer_status(vx_reference current_ref, producer_buffer_sta
             else
             {
                 VX_PRINT(
-                    VX_ZONE_REFERENCE,
+                    VX_ZONE_INFO,
                     "PRODUCER: buffer %d found, status unchanged (%s), refcount is %d\n",
                     buffer_id,
                     state2string[old_status],
@@ -179,7 +179,7 @@ static vx_uint8 get_num_buffer_with_status(vx_producer producer, producer_buffer
     {
         if (status == producer->refs[buffer_id].buffer_status)
         {
-            VX_PRINT(VX_ZONE_REFERENCE, "PRODUCER found a buffer ref %p with status %d \n", producer->refs[buffer_id].ovx_ref, status);
+            VX_PRINT(VX_ZONE_INFO, "PRODUCER found a buffer ref %p with status %d \n", producer->refs[buffer_id].ovx_ref, status);
             num_buffers_found++;
         }
     }
@@ -198,7 +198,7 @@ static vx_int32 get_buffer_id(vx_reference current_ref, vx_producer producer)
     {
         if (producer->refs[buffer_id].ovx_ref == current_ref)
         {
-            VX_PRINT(VX_ZONE_REFERENCE, "PRODUCER found a buffer ref %p at index %d \n", current_ref, buffer_id);
+            VX_PRINT(VX_ZONE_INFO, "PRODUCER found a buffer ref %p at index %d \n", current_ref, buffer_id);
             break;
         }
     }
@@ -834,7 +834,7 @@ static void handle_clients(void* clientPtr, void* data)
                 VX_PRINT(
                     VX_ZONE_INFO, "PRODUCER %s:Received [VX_MSGTYPE_HELLO] from client %d\n", producer->name, client_num);
                 VX_PRINT(
-                    VX_ZONE_PERF,
+                    VX_ZONE_INFO,
                     " [UPT] First Time Connected to Producer %s with ID %u \n ",
                     producer->name,
                     consumer_message->consumer_id);

@@ -166,7 +166,6 @@ vx_user_data_object ownCreateUserDataObject(
     const void *ptr,
     vx_bool is_virtual)
 {
-    vx_status status = (vx_status)VX_SUCCESS;
     vx_user_data_object user_data_object = NULL;
     vx_reference ref = NULL;
     vx_context context;
