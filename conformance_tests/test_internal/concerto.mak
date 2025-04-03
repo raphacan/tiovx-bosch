@@ -36,6 +36,7 @@ ifeq ($(TARGET_OS),QNX)
 IDIRS       += $(PSDK_PATH)/app_utils/utils/mem/src
 IDIRS       += $(PSDK_QNX_PATH)/qnx/sharedmemallocator/usr/public
 IDIRS       += $(PSDK_QNX_PATH)/qnx/sharedmemallocator/resmgr/public
+IDIRS		+= $(VISION_APPS_PATH)/utils/mem/src
 endif
 IDIRS       += ${HOST_ROOT}/utils/include
 IDIRS       += $(IPPC_PATH)

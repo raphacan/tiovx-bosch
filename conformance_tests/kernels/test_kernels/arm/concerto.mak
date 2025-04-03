@@ -17,6 +17,12 @@ IDIRS       += $(IPPC_PATH)
 IDIRS       += $(APP_UTILS_PATH)
 IDIRS       += $(TIOVX_PATH)/source/platform/os/posix
 
+ifeq ($(RTOS_SDK), mcu_plus_sdk)
+IDIRS       += $(APP_UTILS_PATH)/utils/rtos/src
+else
+IDIRS       += $(PDK_PATH)/packages/ti/osal/soc/$(SOC)
+endif
+
 include $(FINALE)
 
 endif

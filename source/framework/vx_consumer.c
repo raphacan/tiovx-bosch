@@ -25,7 +25,7 @@ static int32_t get_buffer_id(vx_reference buffer_ref, vx_reference* reference_ar
     {
         if (reference_array[buffer_id] == buffer_ref)
         {
-            VX_PRINT(VX_ZONE_REFERENCE, "CONSUMER: found a buffer ref %p at index %d \n", buffer_ref, buffer_id);
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER: found a buffer ref %p at index %d \n", buffer_ref, buffer_id);
             break;
         }
     }
@@ -444,7 +444,7 @@ static void* consumer_receiver_thread(void* arg)
                 
                 if (E_IPPC_OK == status)
                 {
-                    VX_PRINT(VX_ZONE_PERF, "CONSUMER: connection made with producer on SHM %s\n", consumer->access_point_name);
+                    VX_PRINT(VX_ZONE_INFO, "CONSUMER: connection made with producer on SHM %s\n", consumer->access_point_name);
                     consumer->state = VX_CONS_STATE_INIT;
                 }
                 else
@@ -483,7 +483,7 @@ static void* consumer_receiver_thread(void* arg)
 
                 if (E_IPPC_OK == status)
                 {
-                    VX_PRINT(VX_ZONE_PERF, " [UPT] First Time Connected to producer!%s", "\n");
+                    VX_PRINT(VX_ZONE_INFO, " [UPT] First Time Connected to producer!%s", "\n");
                     VX_PRINT(VX_ZONE_INFO, "CONSUMER: attached to producer with SHM %s\n", consumer->access_point_name);
                     consumer->state = VX_CONS_STATE_RUN;
                 }
@@ -667,7 +667,7 @@ static vx_gw_status_t start_sync_with_producer(vx_consumer consumer, char* acces
         }
         else if ((socket_fd > 0) && (status == SOCKET_STATUS_OK))
         {
-            VX_PRINT(VX_ZONE_PERF, "CONSUMER: connection made with producer on socket %s\n", access_point_name);
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER: connection made with producer on socket %s\n", access_point_name);
             break;
         }
         else if (consumer->state == VX_CONS_STATE_FAILED)
@@ -937,7 +937,7 @@ static void* consumer_receiver_thread(void* arg)
             }
             else if (VX_GW_STATUS_SUCCESS == gw_status)
             {
-                VX_PRINT(VX_ZONE_PERF, " [UPT] First Time Connected to producer!%s", "\n");
+                VX_PRINT(VX_ZONE_INFO, " [UPT] First Time Connected to producer!%s", "\n");
                 VX_PRINT(VX_ZONE_INFO, "CONSUMER: connected to producer with socket %d\n", consumer->socket_fd);
                 consumer->state = VX_CONS_STATE_INIT;
             }

@@ -207,7 +207,6 @@ static vx_scalar ownCreateScalar(vx_reference scope, vx_enum data_type, const vo
     vx_reference ref = NULL;
     tivx_obj_desc_scalar_t *obj_desc = NULL;
     vx_context context;
-	vx_status status = (vx_status)VX_SUCCESS;
 
     if (ownIsValidSpecificReference(scope, (vx_enum)VX_TYPE_GRAPH) == (vx_bool)vx_true_e)
     {
