@@ -22,167 +22,170 @@ static vx_status set_buffer_status(vx_int32 buffer_id, producer_buffer_status cu
     vx_bool     forbidden_transition = vx_false_e;
     const char* state2string[]       = {"IN_GRAPH", "LOCKED", "FREE"};
 
-    pthread_mutex_lock(&producer->buffer_mutex);
-
-    producer_buffer_status old_status = producer->refs[buffer_id].buffer_status;
-    found                             = vx_true_e;
-
-    switch(old_status)
+    if(-1 < buffer_id)
     {
-        case IN_GRAPH:
-        {
-            if(LOCKED == curr_status)
-            {
-                // IN_GRAPH -> LOCKED: after leaving producer graph
-                producer->refs[buffer_id].refcount++;
-                producer->refs[buffer_id].buffer_status = curr_status;
-            }
-            else if(FREE == curr_status)
-            {
-               /*
-                * IN_GRAPH -> FREE: dequeue from graph in wait state OR
-                * it could happen that we have a double enqueue due to a miscommunication, where a buffer is freed by 
-                * a consumer that was not supposed to free it (buffer message overwrite while consumer whas processing it)
-                * to prevent that, query the number of enqueues for the reference, only enqueue if not done already                
-                * enqueue reference into graph from here, do not change its status 
-                *
-                * Example Usecase: 
-                * 1. consumer gets new message (e.g. bufID 0, mask 1)
-                * 2. consumer does time consuming copy of supplementary (during that time, producer overwrites with (e.g. bufID 1, mask 0)
-                * 3. consumer enqueues bufID 1 (although it shouldn't but it doesn't re evaluate mask flag)
-                * 4. consumer releases bufID 1 which producer does not expect to be released from that consumer, 
-                * while it DOESNT release bufID 0 although producer expects that.
-                */ 
+        pthread_mutex_lock(&producer->buffer_mutex);
 
-                vx_uint32 num_enqueues = 0;
-                vx_status query_status = vxQueryReference(producer->refs[buffer_id].ovx_ref, VX_REFERENCE_ENQUEUE_COUNT, &num_enqueues, sizeof(num_enqueues));
-                if (query_status == VX_SUCCESS)
+        producer_buffer_status old_status = producer->refs[buffer_id].buffer_status;
+        found                             = vx_true_e;
+
+        switch(old_status)
+        {
+            case IN_GRAPH:
+            {
+                if(LOCKED == curr_status)
                 {
-                    if (num_enqueues > 0)
+                    // IN_GRAPH -> LOCKED: after leaving producer graph
+                    producer->refs[buffer_id].refcount++;
+                    producer->refs[buffer_id].buffer_status = curr_status;
+                }
+                else if(FREE == curr_status)
+                {
+                /*
+                    * IN_GRAPH -> FREE: dequeue from graph in wait state OR
+                    * it could happen that we have a double enqueue due to a miscommunication, where a buffer is freed by 
+                    * a consumer that was not supposed to free it (buffer message overwrite while consumer whas processing it)
+                    * to prevent that, query the number of enqueues for the reference, only enqueue if not done already                
+                    * enqueue reference into graph from here, do not change its status 
+                    *
+                    * Example Usecase: 
+                    * 1. consumer gets new message (e.g. bufID 0, mask 1)
+                    * 2. consumer does time consuming copy of supplementary (during that time, producer overwrites with (e.g. bufID 1, mask 0)
+                    * 3. consumer enqueues bufID 1 (although it shouldn't but it doesn't re evaluate mask flag)
+                    * 4. consumer releases bufID 1 which producer does not expect to be released from that consumer, 
+                    * while it DOESNT release bufID 0 although producer expects that.
+                    */ 
+
+                    vx_uint32 num_enqueues = 0;
+                    vx_status query_status = vxQueryReference(producer->refs[buffer_id].ovx_ref, VX_REFERENCE_ENQUEUE_COUNT, &num_enqueues, sizeof(num_enqueues));
+                    if (query_status == VX_SUCCESS)
                     {
-                        VX_PRINT(VX_ZONE_WARNING, "reference has been enqueued back to the graph already \n"); 
+                        if (num_enqueues > 0)
+                        {
+                            VX_PRINT(VX_ZONE_WARNING, "reference has been enqueued back to the graph already \n"); 
+                        }
+                        else
+                        {
+                            producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[buffer_id].ovx_ref);
+                            producer->nbEnqueueFrames++;
+                        }
                     }
                     else
                     {
-                        producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[buffer_id].ovx_ref);
-                        producer->nbEnqueueFrames++;
+                        VX_PRINT(VX_ZONE_ERROR, "Failed to query the number of enqueues for reference with id %d\n", buffer_id);
                     }
                 }
                 else
                 {
-                    VX_PRINT(VX_ZONE_ERROR, "Failed to query the number of enqueues for reference with id %d\n", buffer_id);
+                    // IN_GRAPH -> IN_GRAPH: this is handled implicitly in handle_producer_graph
+                    forbidden_transition = vx_true_e;
                 }
             }
-            else
-            {
-                // IN_GRAPH -> IN_GRAPH: this is handled implicitly in handle_producer_graph
-                forbidden_transition = vx_true_e;
-            }
-        }
-        break;
+            break;
 
-        case LOCKED:
-        {
-            if(LOCKED == curr_status)
+            case LOCKED:
             {
-                // LOCKED -> LOCKED: after being sent to more consumers
-                producer->refs[buffer_id].refcount++;
-                // base the locked count on the latest transmission therefore reset from here
-                VX_PRINT(VX_ZONE_INFO, "reset locked count for reference with id %d \n", buffer_id); 
-                producer->refs[buffer_id].locked_count = 0;
-            }
-            else if(FREE == curr_status)
-            {
-                // LOCKED -> FREE: after coming back from consumer or consumer timeout
-                producer->refs[buffer_id].refcount--;
-                if (producer->refs[buffer_id].refcount == 0)
+                if(LOCKED == curr_status)
                 {
-                    producer->refs[buffer_id].buffer_status = IN_GRAPH;
-                    // enqueue reference into graph from here
-                    producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[buffer_id].ovx_ref);
-                    producer->nbEnqueueFrames++;
-
-                    VX_PRINT(VX_ZONE_INFO, "enqueued back and reset locked count for reference with id %d \n", buffer_id); 
+                    // LOCKED -> LOCKED: after being sent to more consumers
+                    producer->refs[buffer_id].refcount++;
+                    // base the locked count on the latest transmission therefore reset from here
+                    VX_PRINT(VX_ZONE_INFO, "reset locked count for reference with id %d \n", buffer_id); 
                     producer->refs[buffer_id].locked_count = 0;
                 }
+                else if(FREE == curr_status)
+                {
+                    // LOCKED -> FREE: after coming back from consumer or consumer timeout
+                    producer->refs[buffer_id].refcount--;
+                    if (producer->refs[buffer_id].refcount == 0)
+                    {
+                        producer->refs[buffer_id].buffer_status = IN_GRAPH;
+                        // enqueue reference into graph from here
+                        producer->streaming_cb.enqueueCallback(producer->graph_obj, producer->refs[buffer_id].ovx_ref);
+                        producer->nbEnqueueFrames++;
+
+                        VX_PRINT(VX_ZONE_INFO, "enqueued back and reset locked count for reference with id %d \n", buffer_id); 
+                        producer->refs[buffer_id].locked_count = 0;
+                    }
+                }
+                else
+                {
+                    // LOCKED -> IN_GRAPH
+                    forbidden_transition = vx_true_e;
+                }
             }
-            else
+            break;
+
+            case FREE:
             {
-                // LOCKED -> IN_GRAPH
-                forbidden_transition = vx_true_e;
+                if(IN_GRAPH == curr_status)
+                {
+                    // FREE -> IN_GRAPH: enqueueing a fresh ref into producer
+                    producer->refs[buffer_id].buffer_status = curr_status;   
+                }
+                else if(LOCKED == curr_status)
+                {
+                    // FREE -> LOCKED: possible if the locked buffer is freed before the transmission to second consumer is
+                    // shutdown, still we need to increase refcount to prevent buffer handling problems
+                    producer->refs[buffer_id].refcount++;
+                    producer->refs[buffer_id].buffer_status = curr_status;
+                }
+                else
+                {
+                    // FREE -> FREE
+                    forbidden_transition = vx_true_e;
+                }
+            }
+            break;
+
+            default:
+            {
+                VX_PRINT(VX_ZONE_ERROR, "set_buffer_status: Invalid Buffer status %s", "\n");
             }
         }
-        break;
 
-        case FREE:
+
+        if(vx_true_e == forbidden_transition)
         {
-            if(IN_GRAPH == curr_status)
-            {
-                // FREE -> IN_GRAPH: enqueueing a fresh ref into producer
-                producer->refs[buffer_id].buffer_status = curr_status;   
-            }
-            else if(LOCKED == curr_status)
-            {
-                // FREE -> LOCKED: possible if the locked buffer is freed before the transmission to second consumer is
-                // shutdown, still we need to increase refcount to prevent buffer handling problems
-                producer->refs[buffer_id].refcount++;
-                producer->refs[buffer_id].buffer_status = curr_status;
-            }
-            else
-            {
-                // FREE -> FREE
-                forbidden_transition = vx_true_e;
-            }
+            // fatal error; state transition not allowed; should never get here
+            VX_PRINT(
+                VX_ZONE_ERROR,
+                "PRODUCER: Reference state transition (%s -> %s) not allowed for buffer %d!%s",
+                state2string[old_status],
+                state2string[curr_status],
+                buffer_id,
+                "\n");
         }
-        break;
 
-        default:
+        if (producer->refs[buffer_id].buffer_status != old_status)
         {
-            VX_PRINT(VX_ZONE_ERROR, "set_buffer_status: Invalid Buffer status %s", "\n");
+            uint64_t currentTime = tivxPlatformGetTimeInUsecs();
+            VX_PRINT(
+                VX_ZONE_REFERENCE,
+                "PRODUCER: buffer %d found, status changed from %s to %s, refcount is %d \n",
+                buffer_id,
+                state2string[old_status],
+                state2string[curr_status],
+                producer->refs[buffer_id].refcount);
+            VX_PRINT(
+                VX_ZONE_REFERENCE,
+                "PRODUCER: reference was in state %s for %llu usecs\n",
+                state2string[old_status],
+                currentTime - producer->refs[buffer_id].state_timestamp);
+            producer->refs[buffer_id].state_timestamp = currentTime;
         }
-    }
+        else
+        {
+            VX_PRINT(
+                VX_ZONE_REFERENCE,
+                "PRODUCER: buffer %d found, status unchanged (%s), refcount is %d\n",
+                buffer_id,
+                state2string[old_status],
+                producer->refs[buffer_id].refcount);
+        }
 
-
-    if(vx_true_e == forbidden_transition)
-    {
-        // fatal error; state transition not allowed; should never get here
-        VX_PRINT(
-            VX_ZONE_ERROR,
-            "PRODUCER: Reference state transition (%s -> %s) not allowed for buffer %d!%s",
-            state2string[old_status],
-            state2string[curr_status],
-            buffer_id,
-            "\n");
+        pthread_mutex_unlock(&producer->buffer_mutex);
     }
-
-    if (producer->refs[buffer_id].buffer_status != old_status)
-    {
-        uint64_t currentTime = tivxPlatformGetTimeInUsecs();
-        VX_PRINT(
-            VX_ZONE_REFERENCE,
-            "PRODUCER: buffer %d found, status changed from %s to %s, refcount is %d \n",
-            buffer_id,
-            state2string[old_status],
-            state2string[curr_status],
-            producer->refs[buffer_id].refcount);
-        VX_PRINT(
-            VX_ZONE_REFERENCE,
-            "PRODUCER: reference was in state %s for %llu usecs\n",
-            state2string[old_status],
-            currentTime - producer->refs[buffer_id].state_timestamp);
-        producer->refs[buffer_id].state_timestamp = currentTime;
-    }
-    else
-    {
-        VX_PRINT(
-            VX_ZONE_REFERENCE,
-            "PRODUCER: buffer %d found, status unchanged (%s), refcount is %d\n",
-            buffer_id,
-            state2string[old_status],
-            producer->refs[buffer_id].refcount);
-    }
-
-    pthread_mutex_unlock(&producer->buffer_mutex);
 
     if ((found == vx_true_e) && (forbidden_transition == vx_false_e))
     {
