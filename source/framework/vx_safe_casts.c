@@ -133,61 +133,55 @@ DEFINE_SAFE_CASTS(producer, Producer, PRODUCER)
 DEFINE_SAFE_CASTS(consumer, Consumer, CONSUMER)
 #endif
 
-#define DEFINE_SAFE_TI_DOWNCASTS(typename, Name, TYPE)\
-/*! \brief safely get a new vx_reference for the given vx_##typename variable*/\
-VX_API_ENTRY vx_reference tivxGetRefFrom##Name(const tivx_##typename *typename)\
-{\
-    /* casting to the "base class" is inherently safe */\
-    vx_reference lref = ((vx_reference)*typename);\
-    (void)ownIncrementReference(lref, (vx_enum)VX_EXTERNAL);\
-    return lref;\
-}\
-\
-/*! \brief safe cast a vx##typename to a generic vx_reference*/\
-VX_API_ENTRY vx_reference tivxCastRefFrom##Name(tivx_##typename typename)\
-{\
-    /* casting to the "base class" is inherently safe */\
-    return (vx_reference)typename;\
-}\
-\
-/*! \brief safe cast a pointer to vx##typename to a pointer to vx_reference */\
-VX_API_ENTRY vx_reference *tivxCastRefFrom##Name##P(tivx_##typename *p_##typename)\
-{\
-    /* casting to the "base class" is inherently safe */\
-    return (vx_reference *)p_##typename;\
-}\
-\
-/*! \brief safe cast a const pointer to vx##typename to a const pointer to vx_reference */\
-VX_API_ENTRY const vx_reference *tivxCastRefFrom##Name##ConstP(const tivx_##typename *p_##typename)\
-{\
-    /* casting to the "base class" is inherently safe */\
-    return (const vx_reference *)p_##typename;\
+/*! \brief safely get a new vx_reference for the given tivx_raw_image variable*/
+VX_API_ENTRY vx_reference vxGetRefFromRawImage(const tivx_raw_image *type_name)
+{
+    /* casting to the "base class" is inherently safe */
+    vx_reference lref = ((vx_reference)*type_name);
+    (void)ownIncrementReference(lref, (vx_enum)VX_EXTERNAL);
+    return lref;
 }
 
-#define DEFINE_SAFE_TI_CASTS(typename, Name, TYPE) \
-/*! \brief safely get a new vx_##typename or an error object from a vx_reference*/\
-VX_API_ENTRY tivx_##typename tivxGetRefAs##Name(const vx_reference *ref, vx_status *status)\
-{\
-    /* Dynamic cast from base class upwards. \
-       Not inherently safe, we need to check RTTI\
-       and report an error if incorrect.\
-    */\
-    return (tivx_##typename)getRefAs(*ref, (vx_enum)TIVX_TYPE_##TYPE, status);\
-}\
-\
-/*! \brief safely upcast a vx_reference to a vx_##typename or an error object */\
-VX_API_ENTRY tivx_##typename tivxCastRefAs##Name(vx_reference ref, vx_status *status)\
-{\
-    /* Dynamic cast from base class upwards. \
-       Not inherently safe, we need to check RTTI\
-       and report an error if incorrect.\
-    */\
-    return (tivx_##typename)castRefAs(ref, (vx_enum)TIVX_TYPE_##TYPE, status);\
-}\
-\
-DEFINE_SAFE_TI_DOWNCASTS(typename, Name, TYPE)
+/*! \brief safe cast a tivx_raw_image to a generic vx_reference*/
+VX_API_ENTRY vx_reference vxCastRefFromRawImage(tivx_raw_image type_name)
+{
+    /* casting to the "base class" is inherently safe */
+    return (vx_reference)type_name;
+}
 
-DEFINE_SAFE_TI_CASTS(raw_image, RawImage, RAW_IMAGE)
+/*! \brief safe cast a pointer to tivx_raw_image to a pointer to vx_reference */
+VX_API_ENTRY vx_reference *vxCastRefFromRawImageP(tivx_raw_image *p_raw_image)
+{
+    /* casting to the "base class" is inherently safe */
+    return (vx_reference *)p_raw_image;
+}
+
+/*! \brief safe cast a const pointer to tivx_raw_image to a const pointer to vx_reference */
+VX_API_ENTRY const vx_reference *vxCastRefFromRawImageConstP(const tivx_raw_image *p_raw_image)
+{
+    /* casting to the "base class" is inherently safe */
+    return (const vx_reference *)p_raw_image;
+}
+
+/*! \brief safely get a new tivx_raw_image or an error object from a vx_reference*/
+VX_API_ENTRY tivx_raw_image vxGetRefAsRawImage(const vx_reference *ref, vx_status *status)
+{
+    /* Dynamic cast from base class upwards.
+       Not inherently safe, we need to check RTTI
+       and report an error if incorrect.
+    */
+    return (tivx_raw_image)getRefAs(*ref, (vx_enum)TIVX_TYPE_RAW_IMAGE, status);
+}
+
+/*! \brief safely upcast a vx_reference to a tivx_raw_image or an error object */
+VX_API_ENTRY tivx_raw_image vxCastRefAsRawImage(vx_reference ref, vx_status *status)
+{
+    /* Dynamic cast from base class upwards.
+       Not inherently safe, we need to check RTTI
+       and report an error if incorrect.
+    */
+    return (tivx_raw_image)castRefAs(ref, (vx_enum)TIVX_TYPE_RAW_IMAGE, status);
+}
 
 static vx_reference getRefAs(vx_reference ref, vx_enum type, vx_status *status)
 {
