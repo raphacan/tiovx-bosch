@@ -3135,9 +3135,9 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
         {
             /* check image format and prepare format-appropriate modifiers */
             vx_enum tensor_type = (vx_enum)VX_TYPE_UINT8;
-            uint16_t rect_align = NO_ALIGN;
-            uint16_t x_multiplier = DEFAULT_MULTIPLIER;
-            uint16_t y_multiplier = DEFAULT_MULTIPLIER;
+            uint32_t rect_align   = NO_ALIGN;
+            uint32_t x_multiplier = DEFAULT_MULTIPLIER;
+            uint32_t y_multiplier = DEFAULT_MULTIPLIER;
 
             switch (p_obj_desc->format)
             {
@@ -3234,8 +3234,8 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
                     {
                         /* create tensor with the context of the parent image and correct dimensions and data type */
                         vx_size dimensions[2];
-                        dimensions[0] = (roi.end_x - roi.start_x + x_multiplier - 1) / x_multiplier;
-                        dimensions[1] = (roi.end_y - roi.start_y + y_multiplier - 1) / y_multiplier;
+                        dimensions[0] = (roi.end_x - roi.start_x + x_multiplier - 1U) / x_multiplier;
+                        dimensions[1] = (roi.end_y - roi.start_y + y_multiplier - 1U) / y_multiplier;
                         tensor = vxCreateTensor(image->base.context, 2U, dimensions, tensor_type, fixed_point_position);
 
                         /* register the image as the tensor's parent */
@@ -3267,10 +3267,11 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
                         /* stride[1] must match that of the image, not be calculated from the dimensions of the ROI */
                         c_obj_desc = (tivx_obj_desc_tensor_t *)tensor->base.obj_desc;
                         c_obj_desc->create_type = (vx_uint32)TIVX_TENSOR_FROM_ROI;
-                        c_obj_desc->stride[1] = p_obj_desc->imagepatch_addr[0].stride_y;
+                        c_obj_desc->stride[1] = p_obj_desc->imagepatch_addr[0U].stride_y;
 
                         /* calculate tensor host_ptr */
-                        c_obj_desc->mem_ptr.host_ptr = (uint64_t)((uintptr_t)p_obj_desc->mem_ptr[0].host_ptr + (roi.start_x * c_obj_desc->stride[0]) + (roi.start_y * c_obj_desc->stride[1]));
+                        c_obj_desc->mem_ptr.host_ptr = p_obj_desc->mem_ptr[0].host_ptr + 
+                                                       (uint64_t)((roi.start_x * c_obj_desc->stride[0]) + (roi.start_y * c_obj_desc->stride[1]));
 
                         /* calculate shared_ptr */
                         c_obj_desc->mem_ptr.shared_ptr = tivxMemHost2SharedPtr(c_obj_desc->mem_ptr.host_ptr, (vx_enum)TIVX_MEM_EXTERNAL);
@@ -3292,13 +3293,16 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
         }
     }
 
-    if ((vx_status)VX_SUCCESS != status)
+    if (((vx_status)VX_SUCCESS != status))
     {
-        if (tensor->base.obj_desc == NULL)
+        if (tensor != NULL)
         {
-            (void)vxReleaseTensor(&tensor);
+            /* release the tensor if it was created */
+            if (tensor->base.obj_desc != NULL)
+            {
+                (void)vxReleaseTensor(&tensor);
+            }
         }
-        tensor = (vx_tensor)ownGetErrorObject((vx_context)image->base.context, status);
     }
     return tensor;
 }

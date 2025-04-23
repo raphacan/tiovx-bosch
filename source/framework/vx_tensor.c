@@ -171,10 +171,10 @@ static vx_status ownDestructTensor(vx_reference ref)
 {
     vx_status status = (vx_status)VX_SUCCESS;
     tivx_obj_desc_tensor_t *obj_desc = NULL;
-    vx_tensor tensor = (vx_tensor)ref;
     /* look if the tensor was created from image*/
     if ((vx_enum)VX_TYPE_TENSOR == ref->type)
     {
+        vx_tensor tensor = vxCastRefAsTensor(ref, NULL);
         obj_desc = (tivx_obj_desc_tensor_t *)ref->obj_desc;
         if (NULL != obj_desc)
         {
@@ -182,12 +182,11 @@ static vx_status ownDestructTensor(vx_reference ref)
             {
                 if (obj_desc->mem_ptr.host_ptr != (uint64_t)(uintptr_t)NULL)
                 {
-                    tivxMemBufferFree(
+                    (void)tivxMemBufferFree(
                         &obj_desc->mem_ptr, obj_desc->mem_size);
                 }
             }
-            ownObjDescFree((tivx_obj_desc_t **)&obj_desc);
-            
+            (void)ownObjDescFree((tivx_obj_desc_t **)&obj_desc);
             if (NULL != tensor->parent)
             {
                /* decrement the parent's internal reference count */

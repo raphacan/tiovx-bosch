@@ -1272,6 +1272,15 @@ TEST (copySwap, testSubObjectsOfTensors )
     writeImage(images[2], 0x33, 0x9c);
     writeImage(images[3], 0x42, 0xab);
 
+    /* negative testing */
+    vx_tensor tensor = vxCreateTensorFromROI(NULL, &rect1, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
+    tensor = vxCreateTensorFromROI(NULL, NULL, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));    
+    /* other inputs */
+    tensor = vxCreateTensorFromROI(images[0], NULL, 0);
+    EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
+
     vx_tensor tensors[] = {
         vxCreateTensorFromROI(images[0], &rect1, 0),
         vxCreateTensorFromROI(images[1], &rect1, 0),
@@ -1293,6 +1302,7 @@ TEST (copySwap, testSubObjectsOfTensors )
     EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[2]), VX_TYPE_IMAGE, 0x33, 0x9c));
     EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[3]), VX_TYPE_IMAGE, 0x33, 0x9c));
     
+    VX_CALL(vxReleaseTensor(&tensor));
     VX_CALL(vxReleaseTensor(&tensors[0]));
     VX_CALL(vxReleaseTensor(&tensors[1]));
     VX_CALL(vxReleaseTensor(&tensors[2]));
