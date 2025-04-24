@@ -90,6 +90,53 @@ static const vx_enum type_ids[] =
     VX_TYPE_USER_DATA_OBJECT
     };
 
+static const vx_enum format_list[] = {
+    VX_DF_IMAGE_NV12,
+    VX_DF_IMAGE_NV21,
+    VX_DF_IMAGE_IYUV,
+    VX_DF_IMAGE_YUV4,
+    VX_DF_IMAGE_U8,
+    VX_DF_IMAGE_U16,
+    VX_DF_IMAGE_S16,
+    VX_DF_IMAGE_RGBX,
+    TIVX_DF_IMAGE_BGRX,
+    VX_DF_IMAGE_U32,
+    VX_DF_IMAGE_S32,
+    VX_DF_IMAGE_RGB,
+    VX_DF_IMAGE_YUYV,
+    VX_DF_IMAGE_UYVY,
+    TIVX_DF_IMAGE_RGB565,
+    TIVX_DF_IMAGE_NV12_P12
+};
+
+static const vx_enum supported_format_list[] = {
+    VX_DF_IMAGE_U8,
+    VX_DF_IMAGE_U16,
+    VX_DF_IMAGE_S16,
+    VX_DF_IMAGE_RGBX,
+    TIVX_DF_IMAGE_BGRX,
+    VX_DF_IMAGE_U32,
+    VX_DF_IMAGE_S32,
+    VX_DF_IMAGE_RGB,
+    VX_DF_IMAGE_YUYV,
+    VX_DF_IMAGE_UYVY,
+    TIVX_DF_IMAGE_RGB565
+};
+
+static vx_bool is_image_format_supported(vx_enum format)
+{
+    vx_bool found = vx_false_e;
+    for (vx_uint32 i = 0; i < dimof(supported_format_list); i++)
+    {
+        if (supported_format_list[i] == format)
+        {
+            found = vx_true_e;
+            break;
+        }
+    }
+    return found;
+}
+
 #define NUM_TYPES (sizeof(type_ids) / sizeof(vx_enum))
 
 typedef struct _user_data
@@ -1257,20 +1304,10 @@ TEST (copySwap, testSubObjectsOfTensors )
     vx_status status = VX_SUCCESS;
     vx_context context = context_->vx_context_;
 
-    vx_image images[] = {
-        vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8),
-        vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8),
-        vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8),
-        vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8)
-    };
-
-    vx_rectangle_t rect1 = {.start_x = 0, .start_y = 0, .end_x = 10, .end_y = 10};
     vx_rectangle_t rect0 = {.start_x = 0, .start_y = 0, .end_x = 10, .end_y = 8};
-
-    writeImage(images[0], 0x15, 0x7e);
-    writeImage(images[1], 0x24, 0x8d);
-    writeImage(images[2], 0x33, 0x9c);
-    writeImage(images[3], 0x42, 0xab);
+    vx_rectangle_t rect1 = {.start_x = 0, .start_y = 0, .end_x = 10, .end_y = 10};
+    vx_rectangle_t rect_wrong_0 = {.start_x = 11, .start_y = 0, .end_x = 10, .end_y = 8};
+    vx_rectangle_t rect_wrong_1 = {.start_x = 0, .start_y = 10, .end_x = 10, .end_y = 8};
 
     /* negative testing */
     vx_tensor tensor = vxCreateTensorFromROI(NULL, &rect1, 0);
@@ -1278,45 +1315,73 @@ TEST (copySwap, testSubObjectsOfTensors )
     tensor = vxCreateTensorFromROI(NULL, NULL, 0);
     EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));    
     /* other inputs */
-    tensor = vxCreateTensorFromROI(images[0], NULL, 0);
+    vx_image image_0 = vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8);    
+    tensor = vxCreateTensorFromROI(image_0, &rect_wrong_0, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));        
+    tensor = vxCreateTensorFromROI(image_0, &rect_wrong_1, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));    
+    tensor = vxCreateTensorFromROI(image_0, NULL, 0);
     EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
-
-    vx_tensor tensors[] = {
-        vxCreateTensorFromROI(images[0], &rect1, 0),
-        vxCreateTensorFromROI(images[1], &rect1, 0),
-        vxCreateTensorFromROI(images[2], &rect0, 0),
-        vxCreateTensorFromROI(images[3], &rect0, 0)
-    };
-
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxuSwap(context, (vx_reference)images[0], (vx_reference)images[1]));
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[0]), VX_TYPE_TENSOR, 0x24, 0x8d));
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[1]), VX_TYPE_TENSOR, 0x15, 0x7e));
-
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[0]), VX_TYPE_IMAGE, 0x24, 0x8d));
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[1]), VX_TYPE_IMAGE, 0x15, 0x7e));
-
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxuCopy(context, (vx_reference)images[2], (vx_reference)images[3]));
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[2]), VX_TYPE_TENSOR, 0x33, 0x9c));
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[3]), VX_TYPE_TENSOR, 0x33, 0x9c));
-
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[2]), VX_TYPE_IMAGE, 0x33, 0x9c));
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[3]), VX_TYPE_IMAGE, 0x33, 0x9c));
-    
     VX_CALL(vxReleaseTensor(&tensor));
-    VX_CALL(vxReleaseTensor(&tensors[0]));
-    VX_CALL(vxReleaseTensor(&tensors[1]));
-    VX_CALL(vxReleaseTensor(&tensors[2]));
-    VX_CALL(vxReleaseTensor(&tensors[3]));
+    VX_CALL(vxReleaseImage(&image_0));
 
-    vx_uint32 i;
-    for (i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < dimof(format_list); ++i)
     {
-        VX_CALL(vxReleaseImage(&images[i]));
+        vx_enum format = format_list[i];
+
+        vx_image images[] = {
+            vxCreateImage(context, 16, 16, format),
+            vxCreateImage(context, 16, 16, format),
+            vxCreateImage(context, 16, 16, format),
+            vxCreateImage(context, 16, 16, format)
+        };
+        
+        vx_tensor tensors[4];
+        tensors[0] = vxCreateTensorFromROI(images[0], &rect1, 0);
+        tensors[1] = vxCreateTensorFromROI(images[1], &rect1, 0);
+        tensors[2] = vxCreateTensorFromROI(images[2], &rect0, 0);
+        tensors[3] = vxCreateTensorFromROI(images[3], &rect0, 0);
+        if ((vx_bool)vx_true_e == is_image_format_supported(format))
+        {
+            writeImage(images[0], 0x15, 0x7e);
+            writeImage(images[1], 0x24, 0x8d);
+            writeImage(images[2], 0x33, 0x9c);
+            writeImage(images[3], 0x42, 0xab);
+
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[1]));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[2]));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[3]));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxuSwap(context, (vx_reference)images[0], (vx_reference)images[1]));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[0]), VX_TYPE_TENSOR, 0x24, 0x8d));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[1]), VX_TYPE_TENSOR, 0x15, 0x7e));
+        
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[0]), VX_TYPE_IMAGE, 0x24, 0x8d));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[1]), VX_TYPE_IMAGE, 0x15, 0x7e));
+        
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxuCopy(context, (vx_reference)images[2], (vx_reference)images[3]));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[2]), VX_TYPE_TENSOR, 0x33, 0x9c));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromTensor(tensors[3]), VX_TYPE_TENSOR, 0x33, 0x9c));
+        
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[2]), VX_TYPE_IMAGE, 0x33, 0x9c));
+            EXPECT_EQ_VX_STATUS(VX_SUCCESS, checkValues(vxCastRefFromImage(images[3]), VX_TYPE_IMAGE, 0x33, 0x9c));
+            
+            VX_CALL(vxReleaseTensor(&tensors[0]));
+            VX_CALL(vxReleaseTensor(&tensors[1]));
+            VX_CALL(vxReleaseTensor(&tensors[2]));
+            VX_CALL(vxReleaseTensor(&tensors[3]));            
+        }
+    
+        vx_uint32 j;
+        for (j = 0; j < 4; ++j)
+        {
+            VX_CALL(vxReleaseImage(&images[j]));
+        }        
     }
 }
 
 /* Check max of sub-image of sub image */
-TEST (copySwap, testSubObjectsMaxOfSubImages )
+TEST (copySwap, testSubObjectsMaxOfSubImages)
 {
     vx_status status = VX_SUCCESS;
     vx_context context = context_->vx_context_;
