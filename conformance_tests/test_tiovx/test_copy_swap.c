@@ -1326,7 +1326,7 @@ TEST (copySwap, testSubObjectsOfTensors )
     EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
     tensor = vxCreateTensorFromROI(image_0, &rect_wrong_2_1, 0);
     EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));        
-    ASSERT_VX_OBJECT(tensor = vxCreateTensorFromROI(image_0, NULL, 0), VX_TYPE_TENSOR);
+    ASSERT_VX_OBJECT(tensor = vxCreateTensorFromROI(image_0, NULL, 0), (enum vx_type_e)VX_TYPE_TENSOR);
     EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
     VX_CALL(vxReleaseTensor(&tensor));
     VX_CALL(vxReleaseImage(&image_0));
@@ -1505,12 +1505,12 @@ TEST (copySwap, testImageMaxOfSubTensor)
 {
     vx_status status = VX_SUCCESS;
     vx_context context = context_->vx_context_;
-    vx_tensor tensor[TIVX_IMAGE_MAX_SUBTENSORS+1];
+    vx_tensor tensor[TIVX_IMAGE_MAX_SUBTENSORS+2];
     vx_rectangle_t rect0 = {.start_x = 0, .start_y = 0, .end_x = 10, .end_y = 8};
     vx_image image = vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8);
     for (uint8_t i = 0; i < TIVX_IMAGE_MAX_SUBTENSORS; ++i)
     {
-        ASSERT_VX_OBJECT(tensor[i] = vxCreateTensorFromROI(image, &rect0, 0), VX_TYPE_TENSOR);
+        ASSERT_VX_OBJECT(tensor[i] = vxCreateTensorFromROI(image, &rect0, 0), (enum vx_type_e)VX_TYPE_TENSOR);
         EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus(vxCastRefFromTensor(tensor[i])));
     }
     /* max out the number of possible subimages */

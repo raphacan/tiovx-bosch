@@ -252,7 +252,7 @@ static void ownLinkParentSubimage(vx_image parent, vx_image subimage)
 static uint16_t ownGetNumParentSubimages(const vx_image image)
 {
     vx_image p = image;
-    uint16_t num_parents = 0;
+    uint16_t num_parents = 0U;
 
     while (p->parent != NULL)
     {
@@ -3192,7 +3192,7 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
             uint32_t rect_align   = NO_ALIGN;
             uint32_t x_multiplier = DEFAULT_MULTIPLIER;
             uint32_t y_multiplier = DEFAULT_MULTIPLIER;
-            vx_enum tensor_type = ownGetTensorTypeFromImage(p_obj_desc->format);
+            vx_enum tensor_type = ownGetTensorTypeFromImage((vx_enum)p_obj_desc->format);
             if ((vx_enum)VX_TYPE_INVALID != tensor_type)
             {
                 vx_rectangle_t roi;
@@ -3238,8 +3238,8 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
                     {
                         /* create tensor with the context of the parent image and correct dimensions and data type */
                         vx_size dimensions[2];
-                        dimensions[0] = (roi.end_x - roi.start_x + x_multiplier - 1U) / x_multiplier;
-                        dimensions[1] = (roi.end_y - roi.start_y + y_multiplier - 1U) / y_multiplier;
+                        dimensions[0] = ((vx_size)roi.end_x - (vx_size)roi.start_x + x_multiplier - 1U) / x_multiplier;
+                        dimensions[1] = ((vx_size)roi.end_y - (vx_size)roi.start_y + y_multiplier - 1U) / y_multiplier;
                         tensor = vxCreateTensor(image->base.context, 2U, dimensions, tensor_type, fixed_point_position);
 
                         status = vxGetStatus(vxCastRefFromTensor(tensor));
@@ -3279,8 +3279,7 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
 
                                 /* calculate tensor host_ptr */
                                 c_obj_desc->mem_ptr.host_ptr = p_obj_desc->mem_ptr[0].host_ptr + 
-                                                            (uint64_t)((roi.start_x * c_obj_desc->stride[0]) + (roi.start_y * c_obj_desc->stride[1]));
-
+                                                            (uint64_t)(((uint64_t)roi.start_x * (uint64_t)c_obj_desc->stride[0]) + ((uint64_t)roi.start_y * (uint64_t)c_obj_desc->stride[1]));
                                 /* calculate shared_ptr */
                                 c_obj_desc->mem_ptr.shared_ptr = tivxMemHost2SharedPtr(c_obj_desc->mem_ptr.host_ptr, (vx_enum)TIVX_MEM_EXTERNAL);
 

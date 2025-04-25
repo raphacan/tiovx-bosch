@@ -38,9 +38,9 @@ static vx_status ownTensorCheckSizes(const volatile uint32_t *dimensions, const 
 static vx_size ownComputePatchSize (const vx_size * view_start, const vx_size * view_end, vx_size number_of_dimensions);
 static vx_status ownDestructTensor(vx_reference ref);
 static void ownComputePositionsFromIndex(vx_size idx, const vx_size * start, const vx_size * end,
-        const volatile uint32_t * tensor_stride, const vx_size * patch_stride,  vx_size number_of_dimensions,
+        const volatile int32_t * tensor_stride, const vx_size * patch_stride,  vx_size number_of_dimensions,
         vx_size * tensor_pos, vx_size * patch_pos);
-static vx_uint32 ownComputePatchOffset(vx_size num_dims, const vx_size *dim_coordinate, const volatile uint32_t *strides);
+static vx_uint32 ownComputePatchOffset(vx_size num_dims, const vx_size *dim_coordinate, const volatile int32_t *strides);
 
 
 /*! \brief check to see if the tensors may be swapped.
@@ -251,17 +251,17 @@ static void ownInitTensorObject(
 
     /* Stride 0 is simply sizeof(data_type) */
     obj_desc->dimensions[0] = (vx_uint32)dimensions[0];
-    obj_desc->stride[0] = (vx_uint32)ownSizeOfEnumType((vx_int32)obj_desc->data_type);
+    obj_desc->stride[0] = (vx_int32)ownSizeOfEnumType((vx_int32)obj_desc->data_type);
 
     /* Remaining strides are simple equation */
     for (i = 1; i < number_of_dimensions; i++)
     {
         obj_desc->dimensions[i] = (vx_uint32)dimensions[i];
-        obj_desc->stride[i] = obj_desc->stride[i - 1U] * obj_desc->dimensions[i - 1U];
+        obj_desc->stride[i] = obj_desc->stride[i - 1U] * (vx_int32)obj_desc->dimensions[i - 1U];
     }
 
     obj_desc->mem_size =
-        obj_desc->stride[number_of_dimensions - 1U] * obj_desc->dimensions[number_of_dimensions - 1U];
+        (vx_uint32)obj_desc->stride[number_of_dimensions - 1U] * obj_desc->dimensions[number_of_dimensions - 1U];
 
     /* Clear the dimensions beyond what the user is creating */
     for (i = (vx_uint32)number_of_dimensions; i < (vx_uint32)TIVX_CONTEXT_MAX_TENSOR_DIMS; i++)
@@ -315,7 +315,7 @@ static vx_size ownComputePatchSize (const vx_size * view_start, const vx_size * 
 
 
 static void ownComputePositionsFromIndex(vx_size idx, const vx_size * start, const vx_size * end,
-        const volatile uint32_t * tensor_stride, const vx_size * patch_stride,  vx_size number_of_dimensions,
+        const volatile int32_t * tensor_stride, const vx_size * patch_stride,  vx_size number_of_dimensions,
         vx_size * tensor_pos, vx_size * patch_pos)
 {
     *tensor_pos = 0;
@@ -327,19 +327,19 @@ static void ownComputePositionsFromIndex(vx_size idx, const vx_size * start, con
     {
         divisor = (int32_t)end[i] - (int32_t)start[i];
         vx_size curr_dim_index = (vx_size)index_leftover%(vx_size)divisor;
-        *tensor_pos += tensor_stride[i] * (curr_dim_index + start[i]);
+        *tensor_pos += (vx_size)tensor_stride[i] * (curr_dim_index + start[i]);
         *patch_pos += patch_stride[i] * curr_dim_index ;
         index_leftover = index_leftover / (vx_uint32)divisor;
     }
 }
 
-static vx_uint32 ownComputePatchOffset(vx_size num_dims, const vx_size *dim_coordinate, const volatile uint32_t *strides)
+static vx_uint32 ownComputePatchOffset(vx_size num_dims, const vx_size *dim_coordinate, const volatile int32_t *strides)
 {
     vx_uint32 offset = 0, i;
 
     for(i=0; i < num_dims; i++)
     {
-        offset += (strides[i] * (vx_uint32)dim_coordinate[i]);
+        offset += ((vx_uint32)strides[i] * (vx_uint32)dim_coordinate[i]);
     }
     return offset;
 }
@@ -552,7 +552,7 @@ VX_API_ENTRY vx_status VX_API_CALL vxQueryTensor(
                     /* Use 'for' loop instead of memcpy since interface type size is different from obj_desc size */
                     for(i=0; i<(int32_t)obj_desc->number_of_dimensions; i++)
                     {
-                        p[i] = obj_desc->stride[i];
+                        p[i] = (vx_size)obj_desc->stride[i];
                     }
                 }
                 else
@@ -696,7 +696,7 @@ VX_API_ENTRY vx_status VX_API_CALL vxCopyTensorPatch(vx_tensor tensor,
             }
         }
 
-        if (user_stride[0] != obj_desc->stride[0])
+        if (user_stride[0] != (vx_size)obj_desc->stride[0])
         {
             VX_PRINT(VX_ZONE_ERROR, "user_stride[0] must be equal to sizeof(data_type).\n");
             status = (vx_status)VX_ERROR_INVALID_PARAMETERS;
@@ -715,7 +715,7 @@ VX_API_ENTRY vx_status VX_API_CALL vxCopyTensorPatch(vx_tensor tensor,
         vx_uint8* tensor_ptr = (vx_uint8*)(uintptr_t)obj_desc->mem_ptr.host_ptr;
         vx_size patch_size = ownComputePatchSize (view_start, view_end, number_of_dimensions);
         vx_uint32 elements_per_line = (vx_uint32)view_end[0]-(vx_uint32)view_start[0];
-        vx_uint32 bytes_per_line = obj_desc->stride[0] * elements_per_line;
+        vx_uint32 bytes_per_line = (vx_uint32)obj_desc->stride[0] * elements_per_line;
 
         for (i = 0; i < patch_size; i+=elements_per_line) {
             vx_size patch_pos = 0;
@@ -880,7 +880,7 @@ VX_API_ENTRY vx_status VX_API_CALL tivxMapTensorPatch(
 
                 for(i=0; i < number_of_dims; i++)
                 {
-                    stride[i] = obj_desc->stride[i];
+                    stride[i] = (vx_size)obj_desc->stride[i];
                 }
 
                 end_addr = &(host_addr[map_size]);

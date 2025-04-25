@@ -925,7 +925,7 @@ typedef struct _tivx_obj_desc_tensor
      * for (i > 0)
      *    stride[i] = stride[i-1] * dimensions[i-1]
      */
-    volatile uint32_t stride[TIVX_CONTEXT_MAX_TENSOR_DIMS];
+    volatile int32_t stride[TIVX_CONTEXT_MAX_TENSOR_DIMS];
     /*! \brief Buffer size */
     volatile uint32_t mem_size;
     /*! \brief object descriptor ID of parent (if any) */
