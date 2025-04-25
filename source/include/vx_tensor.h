@@ -102,7 +102,7 @@ typedef struct _vx_tensor
 {
     /*! \brief reference object */
     tivx_reference_t base;
-    /*! \brief A pointer to a parent tensor object. */
+    /*! \brief A pointer to a parent image object. */
     vx_image parent;
     /*! \brief Mapping done via vxMapTensorPatch() */
     tivx_tensor_map_info_t maps[TIVX_TENSOR_MAX_MAPS];
