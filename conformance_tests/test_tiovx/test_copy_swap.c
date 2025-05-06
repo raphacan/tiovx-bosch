@@ -99,6 +99,7 @@ static const vx_enum format_list[] = {
     VX_DF_IMAGE_U16,
     VX_DF_IMAGE_S16,
     VX_DF_IMAGE_RGBX,
+    VX_DF_IMAGE_VIRT,
     TIVX_DF_IMAGE_BGRX,
     VX_DF_IMAGE_U32,
     VX_DF_IMAGE_S32,
@@ -106,6 +107,7 @@ static const vx_enum format_list[] = {
     VX_DF_IMAGE_YUYV,
     VX_DF_IMAGE_UYVY,
     TIVX_DF_IMAGE_RGB565,
+    TIVX_DF_IMAGE_P12,
     TIVX_DF_IMAGE_NV12_P12
 };
 
@@ -120,7 +122,8 @@ static const vx_enum supported_format_list[] = {
     VX_DF_IMAGE_RGB,
     VX_DF_IMAGE_YUYV,
     VX_DF_IMAGE_UYVY,
-    TIVX_DF_IMAGE_RGB565
+    TIVX_DF_IMAGE_RGB565,
+    TIVX_DF_IMAGE_P12
 };
 
 static vx_bool is_image_format_supported(vx_enum format)
@@ -1303,46 +1306,77 @@ TEST (copySwap, testSubObjectsOfTensors )
 {
     vx_status status = VX_SUCCESS;
     vx_context context = context_->vx_context_;
+    vx_tensor tensors[4];
+    vx_size dims[2] = {16, 16};
+    vx_graph graph = NULL;
 
     vx_rectangle_t rect0 = {.start_x = 0, .start_y = 0, .end_x = 10, .end_y = 8};
     vx_rectangle_t rect1 = {.start_x = 0, .start_y = 0, .end_x = 10, .end_y = 10};
     vx_rectangle_t rect_wrong_0 = {.start_x = 11, .start_y = 0, .end_x = 10, .end_y = 8};
     vx_rectangle_t rect_wrong_1 = {.start_x = 0, .start_y = 10, .end_x = 10, .end_y = 8};
-    vx_rectangle_t rect_wrong_2_1 = {.start_x = 0, .start_y = 100, .end_x = 10, .end_y = 8};
-    vx_rectangle_t rect_wrong_2_2 = {.start_x = 0, .start_y = 10, .end_x = 10, .end_y = 800};
+    vx_rectangle_t rect_wrong_2 = {.start_x = 11, .start_y = 10, .end_x = 10, .end_y = 8};
+    vx_rectangle_t rect_wrong_3 = {.start_x = 0, .start_y = 10, .end_x = 10, .end_y = 800};
+    vx_rectangle_t rect_wrong_4 = {.start_x = 0, .start_y = 10, .end_x = 100, .end_y = 10};
+    vx_rectangle_t rect_wrong_5 = {.start_x = 0, .start_y = 10, .end_x = 100, .end_y = 800};
+
 
     /* negative testing */
-    vx_tensor tensor = vxCreateTensorFromROI(NULL, &rect1, 0);
-    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
-    tensor = vxCreateTensorFromROI(NULL, NULL, 0);
-    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
-    /* other inputs */
+    tensors[0] = vxCreateTensorFromROI(NULL, &rect1, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    tensors[0] = vxCreateTensorFromROI(NULL, NULL, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    /* other inputs and negative testing */
     vx_image image_0 = vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8);
-    tensor = vxCreateTensorFromROI(image_0, &rect_wrong_0, 0);
-    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));        
-    tensor = vxCreateTensorFromROI(image_0, &rect_wrong_1, 0);
-    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
-    tensor = vxCreateTensorFromROI(image_0, &rect_wrong_2_1, 0);
-    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
-    tensor = vxCreateTensorFromROI(image_0, &rect_wrong_2_1, 0);
-    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));        
-    ASSERT_VX_OBJECT(tensor = vxCreateTensorFromROI(image_0, NULL, 0), (enum vx_type_e)VX_TYPE_TENSOR);
-    EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensor));
-    VX_CALL(vxReleaseTensor(&tensor));
+    tensors[0] = vxCreateTensorFromROI(image_0, &rect_wrong_0, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    tensors[0] = vxCreateTensorFromROI(image_0, &rect_wrong_1, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    tensors[0] = vxCreateTensorFromROI(image_0, &rect_wrong_2, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    tensors[0] = vxCreateTensorFromROI(image_0, &rect_wrong_3, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    tensors[0] = vxCreateTensorFromROI(image_0, &rect_wrong_4, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    tensors[0] = vxCreateTensorFromROI(image_0, &rect_wrong_5, 0);
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));    
+    ASSERT_VX_OBJECT(tensors[0] = vxCreateTensorFromROI(image_0, NULL, 0), (enum vx_type_e)VX_TYPE_TENSOR);
+    EXPECT_EQ_VX_STATUS(VX_SUCCESS, vxGetStatus((vx_reference)tensors[0]));
+    ASSERT_VX_OBJECT(tensors[1] = vxCreateTensor(context, 2, dims, VX_TYPE_UINT8, 0), (enum vx_type_e)VX_TYPE_TENSOR);
+    EXPECT_EQ_VX_STATUS(VX_ERROR_NOT_COMPATIBLE, vxuSwap(context, (vx_reference)tensors[0], (vx_reference)tensors[1]));
+    EXPECT_EQ_VX_STATUS(VX_ERROR_NOT_COMPATIBLE, vxuSwap(context, (vx_reference)tensors[1], (vx_reference)tensors[0]));
+    ASSERT_VX_OBJECT(tensors[2] = vxCreateTensorFromROI(image_0, NULL, 0), (enum vx_type_e)VX_TYPE_TENSOR);
+    EXPECT_EQ_VX_STATUS(VX_ERROR_NOT_COMPATIBLE, vxuSwap(context, (vx_reference)tensors[0], (vx_reference)tensors[2]));
+    EXPECT_EQ_VX_STATUS(VX_ERROR_INVALID_REFERENCE, vxReleaseTensor(&tensors[3]));
+    EXPECT_EQ_VX_STATUS(VX_ERROR_INVALID_REFERENCE, vxReleaseTensor(NULL));
+    VX_CALL(vxReleaseTensor(&tensors[0]));
+    VX_CALL(vxReleaseTensor(&tensors[1]));
+    VX_CALL(vxReleaseTensor(&tensors[2]));
     VX_CALL(vxReleaseImage(&image_0));
+    if (graph)
+    {
+        VX_CALL(vxReleaseGraph(&graph));
+    }    
 
+    vx_image images[4];
     for (uint8_t i = 0; i < dimof(format_list); ++i)
     {
         vx_enum format = format_list[i];
-
-        vx_image images[] = {
-            vxCreateImage(context, 16, 16, format),
-            vxCreateImage(context, 16, 16, format),
-            vxCreateImage(context, 16, 16, format),
-            vxCreateImage(context, 16, 16, format)
-        };
+        if (format == VX_DF_IMAGE_VIRT)
+        {
+            graph = vxCreateGraph(context);
+            images[0] = vxCreateVirtualImage(graph, 16, 16, format);
+            images[1] = vxCreateVirtualImage(graph, 16, 16, format);
+            images[2] = vxCreateVirtualImage(graph, 0, 0, format);
+            images[3] = vxCreateVirtualImage(graph, 0, 0, format);
+        }
+        else
+        {
+            images[0] = vxCreateImage(context, 16, 16, format);
+            images[1] = vxCreateImage(context, 16, 16, format);
+            images[2] = vxCreateImage(context, 16, 16, format);
+            images[3] = vxCreateImage(context, 16, 16, format);
+        }
         
-        vx_tensor tensors[4];
         tensors[0] = vxCreateTensorFromROI(images[0], &rect1, 0);
         tensors[1] = vxCreateTensorFromROI(images[1], &rect1, 0);
         tensors[2] = vxCreateTensorFromROI(images[2], &rect0, 0);
@@ -1389,7 +1423,11 @@ TEST (copySwap, testSubObjectsOfTensors )
         for (j = 0; j < 4; ++j)
         {
             VX_CALL(vxReleaseImage(&images[j]));
-        }        
+        }
+        if (graph)
+        {
+            VX_CALL(vxReleaseGraph(&graph));
+        }
     }
 }
 
@@ -1735,6 +1773,7 @@ TEST(copySwap, testNoCopyRemovalSubObjects)
         vxCreateImageFromROI(parent, &full),
         vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8)
     };
+
     vx_node nodes1[] = 
     {
         vxNotNode(graph, images1[0], parent),
@@ -1776,6 +1815,33 @@ TEST(copySwap, testNoCopyRemovalSubObjects)
     for (i = 0; i < dimof(nodes2); ++i)
     {
         vxReleaseNode(&nodes2[i]);
+    }
+    vxReleaseGraph(&graph);
+
+    /* Test copy node not removed when one tensor is an ROI */
+    ASSERT_VX_OBJECT(graph = vxCreateGraph(context), VX_TYPE_GRAPH);
+    vx_size dims[2] = {16, 16};
+    ASSERT_VX_OBJECT(images2[0] = vxCreateImage(context, 16, 16, VX_DF_IMAGE_U8), VX_TYPE_IMAGE);
+    ASSERT_VX_OBJECT(parent = vxCreateVirtualImage(graph, 16, 16, VX_DF_IMAGE_U8), VX_TYPE_IMAGE);
+    vx_tensor tensors1[] =
+    {
+        vxCreateTensorFromROI(parent, &full, 0),
+        vxCreateTensor(context, 2, dims, VX_TYPE_UINT8, 0)
+    };
+    vx_node nodes3[] = {
+        vxNotNode(graph, images2[0], parent),
+        vxCopyNode(graph, vxCastRefFromTensor(tensors1[0]), vxCastRefFromTensor(tensors1[1]))
+    };
+    EXPECT_NE_VX_STATUS(VX_SUCCESS, nodeIsOptimised(graph, nodes3[1]));
+    vxReleaseImage(&parent);
+    vxReleaseImage(&images2[0]);
+    for (i = 0; i < dimof(tensors1); ++i)
+    {
+        vxReleaseTensor(&tensors1[i]);
+    }
+    for (i = 0; i < dimof(nodes3); ++i)
+    {
+        vxReleaseNode(&nodes3[i]);
     }
     vxReleaseGraph(&graph);
 }

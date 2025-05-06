@@ -3103,9 +3103,7 @@ vx_status ownInitVirtualImage(
     return (status);
 }
 
-#define NO_ALIGN 1
 #define DEFAULT_MULTIPLIER 1
-
 
 static vx_enum ownGetTensorTypeFromImage(vx_enum image_format)
 {
@@ -3189,7 +3187,6 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
         else
         {
             /* check image format and prepare format-appropriate modifiers */
-            uint32_t rect_align   = NO_ALIGN;
             uint32_t x_multiplier = DEFAULT_MULTIPLIER;
             uint32_t y_multiplier = DEFAULT_MULTIPLIER;
             vx_enum tensor_type = ownGetTensorTypeFromImage((vx_enum)p_obj_desc->format);
@@ -3212,14 +3209,8 @@ VX_API_ENTRY vx_tensor VX_API_CALL vxCreateTensorFromROI(vx_image image, const v
                     roi.end_x = rect->end_x;
                     roi.end_y = rect->end_y;
                 }
-                /* check alignment */
-                if (0U != (roi.start_x % rect_align))
-                {
-                    VX_PRINT(VX_ZONE_ERROR, "Invalid rectangle alignment\n");
-                    status = (vx_status)VX_ERROR_INVALID_PARAMETERS;
-                }
                 /* rectangle sanity check */
-                else if ((roi.start_x > roi.end_x) || (roi.start_y > roi.end_y))
+                if ((roi.start_x > roi.end_x) || (roi.start_y > roi.end_y))
                 {
                     VX_PRINT(VX_ZONE_ERROR, "Invalid rectangle\n");
                     status = (vx_status)VX_ERROR_INVALID_PARAMETERS;
