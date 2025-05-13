@@ -1363,18 +1363,18 @@ TEST (copySwap, testSubObjectsOfTensors )
         vx_enum format = format_list[i];
         if (format == VX_DF_IMAGE_VIRT)
         {
-            graph = vxCreateGraph(context);
-            images[0] = vxCreateVirtualImage(graph, 16, 16, format);
-            images[1] = vxCreateVirtualImage(graph, 16, 16, format);
-            images[2] = vxCreateVirtualImage(graph, 0, 0, format);
-            images[3] = vxCreateVirtualImage(graph, 0, 0, format);
+            ASSERT_VX_OBJECT(graph = vxCreateGraph(context), VX_TYPE_GRAPH);
+            ASSERT_VX_OBJECT(images[0] = vxCreateVirtualImage(graph, 16, 16, format), VX_TYPE_IMAGE);
+            ASSERT_VX_OBJECT(images[1] = vxCreateVirtualImage(graph, 16, 16, format), VX_TYPE_IMAGE);
+            ASSERT_VX_OBJECT(images[2] = vxCreateVirtualImage(graph, 0, 0, format), VX_TYPE_IMAGE);
+            ASSERT_VX_OBJECT(images[3] = vxCreateVirtualImage(graph, 0, 0, format), VX_TYPE_IMAGE);
         }
         else
         {
-            images[0] = vxCreateImage(context, 16, 16, format);
-            images[1] = vxCreateImage(context, 16, 16, format);
-            images[2] = vxCreateImage(context, 16, 16, format);
-            images[3] = vxCreateImage(context, 16, 16, format);
+            ASSERT_VX_OBJECT(images[0] = vxCreateImage(context, 16, 16, format), VX_TYPE_IMAGE);
+            ASSERT_VX_OBJECT(images[1] = vxCreateImage(context, 16, 16, format), VX_TYPE_IMAGE);
+            ASSERT_VX_OBJECT(images[2] = vxCreateImage(context, 16, 16, format), VX_TYPE_IMAGE);
+            ASSERT_VX_OBJECT(images[3] = vxCreateImage(context, 16, 16, format), VX_TYPE_IMAGE);
         }
         
         tensors[0] = vxCreateTensorFromROI(images[0], &rect1, 0);
@@ -1882,18 +1882,18 @@ TEST(copySwap, testNoCopyRemovalContainersDiffer)
 
     EXPECT_NE_VX_STATUS(VX_SUCCESS, nodeIsOptimised(graph, nodes1[1]));
 
-    vxReleaseImage(&exemplar);
-    vxReleasePyramid(&parent_pyramid);
-    vxReleaseObjectArray(&parent_array);
+    VX_CALL(vxReleaseImage(&exemplar));
+    VX_CALL(vxReleasePyramid(&parent_pyramid));
+    VX_CALL(vxReleaseObjectArray(&parent_array));
     for (i = 0; i < dimof(images1); ++i)
     {
-        vxReleaseImage(&images1[i]);
+        VX_CALL(vxReleaseImage(&images1[i]));
     }
     for (i = 0; i < dimof(nodes1); ++i)
     {
-        vxReleaseNode(&nodes1[i]);
+        VX_CALL(vxReleaseNode(&nodes1[i]));
     }
-    vxReleaseGraph(&graph);
+    VX_CALL(vxReleaseGraph(&graph));
 }
 
 TEST(copySwap, testNoCopyRemovalPyramidLevel)
