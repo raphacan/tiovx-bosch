@@ -65,7 +65,7 @@
  
  #include <tivx_utils_ipc_ref_xfer.h>
  
- vx_status rbvx_utils_export_ref_for_ipc_xfer_objarray(const vx_reference ref,
+ vx_status vx_utils_export_ref_for_ipc_xfer_objarray(const vx_reference ref,
                                                        vx_uint32 *numMessages,
                                                        tivx_utils_ref_ipc_msg_t *ipcMsgHandle,
                                                        tivx_utils_ref_ipc_msg_t  ipcMsgArray[])
@@ -147,12 +147,12 @@
          meta       = &refDesc->meta;
  
          meta->type = ref->type;
-         meta->meta_data.object_array.num_items = numItems;
-         meta->meta_data.object_array.item_type = itemType;
+         meta->object.object_array.num_items = numItems;
+         meta->object.object_array.item_type = itemType;
  
          ipcMsgHandle->numFd = 0;
          *numMessages = numItems;
-         VX_PRINT(VX_ZONE_INFO, "rbvx_utils_export_ref_for_ipc_xfer_objarray() successfull.\n");
+         VX_PRINT(VX_ZONE_INFO, "vx_utils_export_ref_for_ipc_xfer_objarray() successfull.\n");
      }
  
      return vxStatus;
@@ -214,10 +214,10 @@
  
              obj_desc = (tivx_obj_desc_image_t *)ref->obj_desc;
  
-             meta->meta_data.img.width  = obj_desc->width;
-             meta->meta_data.img.height = obj_desc->height;
-             meta->meta_data.img.format = obj_desc->format;
-             meta->meta_data.img.planes = obj_desc->planes;
+             meta->object.img.width  = obj_desc->width;
+             meta->object.img.height = obj_desc->height;
+             meta->object.img.format = obj_desc->format;
+             meta->object.img.planes = obj_desc->planes;
  
              /* Just translate plane[0] pointer. */
              numEntries = 1;
@@ -229,13 +229,13 @@
  
              obj_desc = (tivx_obj_desc_tensor_t *)ref->obj_desc;
  
-             meta->meta_data.tensor.number_of_dimensions = obj_desc->number_of_dimensions;
-             meta->meta_data.tensor.data_type            = obj_desc->data_type;
-             meta->meta_data.tensor.fixed_point_position = obj_desc->fixed_point_position;
+             meta->object.tensor.number_of_dimensions = obj_desc->number_of_dimensions;
+             meta->object.tensor.data_type            = obj_desc->data_type;
+             meta->object.tensor.fixed_point_position = obj_desc->fixed_point_position;
  
-             for (k = 0; k < meta->meta_data.tensor.number_of_dimensions; k++)
+             for (k = 0; k < meta->object.tensor.number_of_dimensions; k++)
              {
-                 meta->meta_data.tensor.dimensions[k] = obj_desc->dimensions[k];
+                 meta->object.tensor.dimensions[k] = obj_desc->dimensions[k];
              }
          }
          else if (meta->type == (vx_enum)VX_TYPE_USER_DATA_OBJECT)
@@ -244,9 +244,9 @@
  
              obj_desc = (tivx_obj_desc_user_data_object_t *)ref->obj_desc;
  
-             meta->meta_data.user_data_object.size = obj_desc->mem_size;
+             meta->object.user_data_object.size = obj_desc->mem_size;
  
-             memcpy(meta->meta_data.user_data_object.type_name,
+             memcpy(meta->object.user_data_object.type_name,
                     (const void *)obj_desc->type_name,
                     sizeof(obj_desc->type_name));
          }
@@ -256,8 +256,8 @@
  
              obj_desc = (tivx_obj_desc_array_t *)ref->obj_desc;
  
-             meta->meta_data.arr.item_type = obj_desc->item_type;
-             meta->meta_data.arr.capacity  = obj_desc->capacity;
+             meta->object.arr.item_type = obj_desc->item_type;
+             meta->object.arr.capacity  = obj_desc->capacity;
          }
          else if (meta->type == (vx_enum)VX_TYPE_CONVOLUTION)
          {
@@ -265,8 +265,8 @@
  
              obj_desc = (tivx_obj_desc_convolution_t *)ref->obj_desc;
  
-             meta->meta_data.conv.cols = obj_desc->columns;
-             meta->meta_data.conv.rows = obj_desc->rows;
+             meta->object.conv.cols = obj_desc->columns;
+             meta->object.conv.rows = obj_desc->rows;
  
          }
          else if (meta->type == (vx_enum)VX_TYPE_MATRIX)
@@ -275,9 +275,9 @@
  
              obj_desc = (tivx_obj_desc_matrix_t *)ref->obj_desc;
  
-             meta->meta_data.mat.type = obj_desc->data_type;
-             meta->meta_data.mat.cols = obj_desc->columns;
-             meta->meta_data.mat.rows = obj_desc->rows;
+             meta->object.mat.type = obj_desc->data_type;
+             meta->object.mat.cols = obj_desc->columns;
+             meta->object.mat.rows = obj_desc->rows;
          }
          else if (meta->type == (vx_enum)VX_TYPE_DISTRIBUTION)
          {
@@ -285,9 +285,9 @@
  
              obj_desc = (tivx_obj_desc_distribution_t *)ref->obj_desc;
  
-             meta->meta_data.dist.bins   = obj_desc->num_bins;
-             meta->meta_data.dist.offset = obj_desc->offset;
-             meta->meta_data.dist.range  = obj_desc->range;
+             meta->object.dist.bins   = obj_desc->num_bins;
+             meta->object.dist.offset = obj_desc->offset;
+             meta->object.dist.range  = obj_desc->range;
  
          }
          else if (meta->type == (vx_enum)TIVX_TYPE_RAW_IMAGE)
@@ -296,7 +296,7 @@
  
              obj_desc = (tivx_obj_desc_raw_image_t *)ref->obj_desc;
  
-             tivx_obj_desc_memcpy(&meta->meta_data.raw_image,
+             tivx_obj_desc_memcpy(&meta->object.raw_image,
                     &obj_desc->params,
                     sizeof(tivx_raw_image_create_params_t));
          }
@@ -312,14 +312,14 @@
              img_ref      = (vx_reference)pyramid->img[0];
              img_obj_desc = (tivx_obj_desc_image_t *)img_ref->obj_desc;
  
-             meta->meta_data.pmd.levels = obj_desc->num_levels;
-             meta->meta_data.pmd.width  = obj_desc->width;
-             meta->meta_data.pmd.height = obj_desc->height;
-             meta->meta_data.pmd.scale  = obj_desc->scale;
-             meta->meta_data.pmd.format = obj_desc->format;
-             meta->meta_data.pmd.planes = img_obj_desc->planes;
+             meta->object.pmd.levels = obj_desc->num_levels;
+             meta->object.pmd.width  = obj_desc->width;
+             meta->object.pmd.height = obj_desc->height;
+             meta->object.pmd.scale  = obj_desc->scale;
+             meta->object.pmd.format = obj_desc->format;
+             meta->object.pmd.planes = img_obj_desc->planes;
  
-             numEntries = meta->meta_data.pmd.levels;
+             numEntries = meta->object.pmd.levels;
          }
          else
          {
@@ -350,7 +350,7 @@
      return vxStatus;
  }
  
- vx_status rbvx_utils_import_ref_from_ipc_xfer_objarray(vx_context                context,
+ vx_status vx_utils_import_ref_from_ipc_xfer_objarray(vx_context                context,
                                                         tivx_utils_ref_ipc_msg_t *ipcMsgHandle,
                                                         tivx_utils_ref_ipc_msg_t  ipcMsgArray[],
                                                         vx_reference             *ref)
@@ -389,7 +389,7 @@
          if (meta->type == (vx_enum)VX_TYPE_OBJECT_ARRAY)
          {
              /* Import all the items from the array, gather the references */
-             numItems = meta->meta_data.object_array.num_items;
+             numItems = meta->object.object_array.num_items;
  
              for(i = 0; i < numItems; i++)
              {
@@ -410,11 +410,11 @@
              {
                  vx_object_array obj;
  
-                 obj = rbvx_createObjectArrayImportedRefs(context, (vx_reference *) &objArrayRefs, numItems);
+                 obj = vx_createObjectArrayImportedRefs(context, (vx_reference *) &objArrayRefs, numItems);
  
                  if (obj == NULL)
                  {
-                     VX_PRINT(VX_ZONE_ERROR, "rbvx_create_objarray_imported() failed.\n");
+                     VX_PRINT(VX_ZONE_ERROR, "vx_create_objarray_imported() failed.\n");
                      vxStatus = VX_FAILURE;
                  }
                  else
@@ -472,9 +472,9 @@
              vx_image    obj;
  
              obj = vxCreateImage(context,
-                                 meta->meta_data.img.width,
-                                 meta->meta_data.img.height,
-                                 meta->meta_data.img.format);
+                                 meta->object.img.width,
+                                 meta->object.img.height,
+                                 meta->object.img.format);
  
              if (obj == NULL)
              {
@@ -489,10 +489,10 @@
              vx_tensor   obj;
  
              obj = vxCreateTensor(context,
-                                  meta->meta_data.tensor.number_of_dimensions,
-                                  meta->meta_data.tensor.dimensions,
-                                  meta->meta_data.tensor.data_type,
-                                  meta->meta_data.tensor.fixed_point_position);
+                                  meta->object.tensor.number_of_dimensions,
+                                  meta->object.tensor.dimensions,
+                                  meta->object.tensor.data_type,
+                                  meta->object.tensor.fixed_point_position);
  
              if (obj == NULL)
              {
@@ -507,8 +507,8 @@
              vx_user_data_object obj;
  
              obj = vxCreateUserDataObject(context,
-                                          meta->meta_data.user_data_object.type_name,
-                                          meta->meta_data.user_data_object.size,
+                                          meta->object.user_data_object.type_name,
+                                          meta->object.user_data_object.size,
                                           NULL);
  
              if (obj == NULL)
@@ -524,8 +524,8 @@
              vx_array    obj;
  
              obj = vxCreateArray(context,
-                                 meta->meta_data.arr.item_type,
-                                 meta->meta_data.arr.capacity);
+                                 meta->object.arr.item_type,
+                                 meta->object.arr.capacity);
  
              if (obj == NULL)
              {
@@ -540,8 +540,8 @@
              vx_convolution  obj;
  
              obj = vxCreateConvolution(context,
-                                       meta->meta_data.conv.cols,
-                                       meta->meta_data.conv.rows);
+                                       meta->object.conv.cols,
+                                       meta->object.conv.rows);
  
              if (obj == NULL)
              {
@@ -556,9 +556,9 @@
              vx_matrix   obj;
  
              obj = vxCreateMatrix(context,
-                                  meta->meta_data.mat.type,
-                                  meta->meta_data.mat.cols,
-                                  meta->meta_data.mat.rows);
+                                  meta->object.mat.type,
+                                  meta->object.mat.cols,
+                                  meta->object.mat.rows);
  
              if (obj == NULL)
              {
@@ -573,9 +573,9 @@
              vx_distribution obj;
  
              obj = vxCreateDistribution(context,
-                                        meta->meta_data.dist.bins,
-                                        meta->meta_data.dist.offset,
-                                        meta->meta_data.dist.range);
+                                        meta->object.dist.bins,
+                                        meta->object.dist.offset,
+                                        meta->object.dist.range);
  
              if (obj == NULL)
              {
@@ -590,7 +590,7 @@
              tivx_raw_image_create_params_t *p;
              tivx_raw_image                  obj;
  
-             p = (tivx_raw_image_create_params_t *)&meta->meta_data.raw_image;
+             p = (tivx_raw_image_create_params_t *)&meta->object.raw_image;
  
              obj = tivxCreateRawImage(context, p);
  
@@ -607,11 +607,11 @@
              vx_pyramid  obj;
  
              obj = vxCreatePyramid(context,
-                                   meta->meta_data.pmd.levels,
-                                   meta->meta_data.pmd.scale,
-                                   meta->meta_data.pmd.width,
-                                   meta->meta_data.pmd.height,
-                                   meta->meta_data.pmd.format);
+                                   meta->object.pmd.levels,
+                                   meta->object.pmd.scale,
+                                   meta->object.pmd.width,
+                                   meta->object.pmd.height,
+                                   meta->object.pmd.format);
  
              if (obj == NULL)
              {

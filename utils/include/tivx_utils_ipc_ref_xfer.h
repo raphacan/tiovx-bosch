@@ -203,7 +203,7 @@ typedef struct
         /*!< \brief structure containing information about raw image
             used when type is set to TIVX_TYPE_RAW_IMAGE */
         tivx_raw_image_create_params_t raw_image;
-    } meta_data; // Union to hold different types of metadata
+    } object; // Union to hold different types of metadata
 
 } tivx_utils_meta_format_t;
 
@@ -271,7 +271,7 @@ typedef struct
  * \return VX_SUCCESS on success, else failure
  *
  */
-vx_status rbvx_utils_export_ref_for_ipc_xfer_objarray(const vx_reference ref,
+vx_status vx_utils_export_ref_for_ipc_xfer_objarray(const vx_reference ref,
                                                       vx_uint32 *numMessages,
                                                       tivx_utils_ref_ipc_msg_t *ipcMsgHandle,
                                                       tivx_utils_ref_ipc_msg_t ipcMsgArray[]);
@@ -317,7 +317,7 @@ vx_status tivx_utils_export_ref_for_ipc_xfer(const vx_reference         ref,
  * \return VX_SUCCESS on success, else failure
  *
  */
-vx_status rbvx_utils_import_ref_from_ipc_xfer_objarray(vx_context                context,
+vx_status vx_utils_import_ref_from_ipc_xfer_objarray(vx_context                context,
                                                        tivx_utils_ref_ipc_msg_t *ipcMsgHandle,
                                                        tivx_utils_ref_ipc_msg_t  ipcMsgArray[],
                                                        vx_reference             *ref);
