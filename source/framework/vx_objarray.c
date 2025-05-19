@@ -175,7 +175,7 @@ VX_API_ENTRY vx_object_array VX_API_CALL vxCreateObjectArray(
     return (objarr);
 }
 
-VX_API_ENTRY vx_object_array VX_API_CALL rbvx_createObjectArrayImportedRefs( vx_context     context,
+VX_API_ENTRY vx_object_array VX_API_CALL vx_createObjectArrayImportedRefs( vx_context     context,
                                                                              vx_reference   references[], 
                                                                              vx_size        count)
 {

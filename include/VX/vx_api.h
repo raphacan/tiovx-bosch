@@ -2376,7 +2376,7 @@ VX_API_ENTRY vx_object_array VX_API_CALL vxCreateObjectArray(vx_context context,
  *
  * \ingroup group_object_array
  */
-VX_API_ENTRY vx_object_array VX_API_CALL rbvx_createObjectArrayImportedRefs(vx_context context, vx_reference references[], vx_size count);
+VX_API_ENTRY vx_object_array VX_API_CALL vx_createObjectArrayImportedRefs(vx_context context, vx_reference references[], vx_size count);
 
 /*!
  * \brief Creates an opaque reference to a virtual ObjectArray with no direct user access.

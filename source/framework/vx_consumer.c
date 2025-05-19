@@ -112,13 +112,13 @@ import_ref_from_producer(vx_consumer consumer, vx_prod_msg_content_t* buff_desc_
 
                     // finish reception of object array
                     vx_reference objarray_ref = NULL;
-                    status = rbvx_utils_import_ref_from_ipc_xfer_objarray(
+                    status = vx_utils_import_ref_from_ipc_xfer_objarray(
                         consumer->context, ref_export_handle, (tivx_utils_ref_ipc_msg_t*)&consumer->ipcMessageArray, &objarray_ref);
                     if ((status != VX_SUCCESS) && (vxGetStatus(objarray_ref) != VX_SUCCESS))
                     {
                         VX_PRINT(
                             VX_ZONE_ERROR,
-                            "CONSUMER: rbvx_utils_import_ref_from_ipc_xfer_objarray() failed for ref [%d]\n",
+                            "CONSUMER: vx_utils_import_ref_from_ipc_xfer_objarray() failed for ref [%d]\n",
                             consumer->num_refs);
                     }
                     else
@@ -583,13 +583,13 @@ import_ref_from_producer(vx_consumer consumer, vx_gw_buff_desc_msg* buff_desc_ms
 
             // finish reception of object array
             vx_reference objarray_ref = NULL;
-            framework_status          = rbvx_utils_import_ref_from_ipc_xfer_objarray(
+            framework_status          = vx_utils_import_ref_from_ipc_xfer_objarray(
                 consumer->context, ref_export_handle, (tivx_utils_ref_ipc_msg_t*)&consumer->ipcMessageArray, &objarray_ref);
             if ((framework_status != VX_SUCCESS) && (vxGetStatus(objarray_ref) != VX_SUCCESS))
             {
                 VX_PRINT(
                     VX_ZONE_ERROR,
-                    "CONSUMER: rbvx_utils_import_ref_from_ipc_xfer_objarray() failed for ref [%d]\n",
+                    "CONSUMER: vx_utils_import_ref_from_ipc_xfer_objarray() failed for ref [%d]\n",
                     consumer->num_refs);
             }
             else

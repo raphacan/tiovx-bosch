@@ -407,7 +407,7 @@ static void fill_reference_info(vx_producer producer, vx_prod_msg_content_t* buf
         }
         else if (ref_type == VX_TYPE_OBJECT_ARRAY)
         {
-            framework_status = rbvx_utils_export_ref_for_ipc_xfer_objarray(
+            framework_status = vx_utils_export_ref_for_ipc_xfer_objarray(
                 producer->refs[i].ovx_ref,
                 &num_items,
                 &ipc_message_parent,
@@ -652,7 +652,7 @@ static vx_int32 send_reference_info(vx_producer producer, client_context* client
         }
         else if (ref_type == VX_TYPE_OBJECT_ARRAY)
         {
-            framework_status = rbvx_utils_export_ref_for_ipc_xfer_objarray(
+            framework_status = vx_utils_export_ref_for_ipc_xfer_objarray(
                 producer->refs[i].ovx_ref,
                 &num_items,
                 &ipc_message_parent,
