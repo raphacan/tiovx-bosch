@@ -24,6 +24,18 @@ CSOURCES    := \
     ../common/tivx_perf.c                           \
     ../common/vx_target_on_host_cpu.c               \
 
+ifeq ($(CONNECTOR_TP),IPPC_SHEM)
+CSOURCES += $(COMMON_FILES_REL_PATH)/vx_producer_ippc.c $(COMMON_FILES_REL_PATH)/vx_consumer_ippc.c
+DEFS += IPPC_SHEM_ENABLED
+DEFS += BUILD_GC
+endif
+
+ifeq ($(CONNECTOR_TP),SOCKET)
+CSOURCES += $(COMMON_FILES_REL_PATH)/vx_producer_sock.c $(COMMON_FILES_REL_PATH)/vx_consumer_sock.c
+DEFS += SOCKET_ENABLED
+DEFS += BUILD_GC
+endif
+
 IDIRS       += $(TIOVX_PATH)/source/include
 IDIRS       += $(TIOVX_PATH)/utils/include
 IDIRS       += $(TIOVX_PATH)/source/platform/psdk_j7/common

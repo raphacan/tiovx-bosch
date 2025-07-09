@@ -25,7 +25,6 @@
 #define OPENVX_KHR_PRODUCER  "vx_khr_producer"
 
 #include <VX/vx.h>
-#include <vx_gw_common.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -36,6 +35,11 @@ extern "C"
  * \ingroup group_vx_producer
  */
 typedef struct _vx_producer *vx_producer;
+
+/*! \brief The Producer param Object. Producer param Object is a strongly-typed container for other data structures.
+ * \ingroup group_vx_producer
+ */
+typedef struct _vx_gc_prod_params_t *vx_gc_prod_params_t;
 
 /*! \brief The object type enumeration for producer object
  * \ingroup group_vx_producer
@@ -66,7 +70,7 @@ typedef struct _vx_producer *vx_producer;
  * 
  * \ingroup group_vx_producer
  */
-typedef vx_status (*vxProducerDequeueCallback)(
+typedef vx_status (*vx_producer_dequeue_f)(
     void*        graph_obj,
     vx_reference dequeued_refs[],
     vx_uint32*   num_dequeued_refs);
@@ -84,7 +88,7 @@ typedef vx_status (*vxProducerDequeueCallback)(
  * 
  * \ingroup group_vx_producer
  */
-typedef vx_status (*vxProducerEnqueueCallback)(
+typedef vx_status (*vx_producer_enqueue_f)(
     void*        graph_obj,
     vx_reference enqueue_ref);
 
@@ -100,7 +104,7 @@ typedef vx_status (*vxProducerEnqueueCallback)(
  * 
  * \ingroup group_vx_producer
  */
-typedef vx_status (*vxProducerTransmitMetadataCallback)(
+typedef vx_status (*vx_producer_transmit_meta_f)(
     void*     graph_obj,
     vx_reference ref,
     void*    metadata,
@@ -148,21 +152,6 @@ typedef void (*vx_producer_connect_notify_f)(const vx_uint32 consumer_id, const 
 typedef void (*vx_producer_disconnect_notify_f)(const vx_uint32 consumer_id, const char* consumer_name);
 
 /*!
- * \brief Producer callbacks
- *
- * \ingroup group_vx_producer
- */
-typedef struct _vx_streaming_cb_t
-{
-    /*! \brief The Dequeue function */
-    vxProducerDequeueCallback          dequeueCallback;
-    /*! \brief The Enqueue function */
-    vxProducerEnqueueCallback          enqueueCallback;
-    /*! \brief The Function pointer to export metadata */
-    vxProducerTransmitMetadataCallback getMetadataCallback;
-} vx_streaming_cb_t;
-
-/*!
  * \brief Parameters for producer
  *
  * \ingroup group_vx_producer
@@ -179,21 +168,18 @@ typedef struct _vx_producer_params_t
     /*! \brief number of references to be exported to consumer */
     vx_uint16           num_buffer_refs_export;
     /*! \brief maximum number of references allowed to be locked by client before new frame is dropped instead of being sent */
-    uint32_t max_refs_locked_by_client;
+    uint32_t            max_refs_locked_by_client;
     /*! \brief references to be exported to producer */
     vx_reference*       ref_to_export;
 
     /*! \brief pointer to the producer graph object */
     void*               graph_obj;
-    /*! \brief pointer to store producer function callbacks */
-    vx_streaming_cb_t   streaming_cb;
-
-#ifdef IPPC_SHEM_ENABLED
-    /*! \brief Contains ippc port configuration */
-    SIppcPortMap        ippc_port[IPPC_PORT_COUNT];
-    /*! \brief rate at which producer polls for new consumer during startup */
-    vx_uint32           connection_check_polling_time;
-#endif    
+    /*! \brief function callbacks */
+    vx_producer_dequeue_f       dequeue_callback;
+    vx_producer_enqueue_f       enqueue_callback;
+    vx_producer_transmit_meta_f transmit_meta;
+    /*! \brief structure to store connector specific params */
+    vx_gc_prod_params_t gc_params;
 } vx_producer_params_t; 
 
 /**
