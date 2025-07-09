@@ -2253,8 +2253,12 @@ VX_API_ENTRY vx_status VX_API_CALL vxVerifyGraph(vx_graph graph)
                 }
                 else
                 {
+                    /* Eliminate trivial Select nodes. These may become Copy nodes */
+                    ownGraphEliminateTrivialSelectMultiNodes(graph);
                     /* Optimise out Copy and Move nodes where possible */
-                    status = ownGraphProcessCopyMoveNodes(graph);
+                    //status = ownGraphProcessCopyMoveNodes(graph); // remove for now because we want to test select with copy nodes that are not optimised away
+                    /* Process any Select Nodes, optimising if possible */
+                    ownGraphProcessSelectMultiNodes(graph);
                 }
 
                 if(status == (vx_status)VX_SUCCESS)

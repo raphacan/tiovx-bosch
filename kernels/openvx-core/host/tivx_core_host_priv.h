@@ -166,4 +166,7 @@ vx_status tivxRemoveKernelSwap(vx_context context);
 vx_status tivxAddKernelMove(vx_context context);
 vx_status tivxRemoveKernelMove(vx_context context);
 
+vx_status tivxAddKernelSelectMulti(vx_context context);
+vx_status tivxRemoveKernelSelectMulti(vx_context context);
+
 #endif /* TIVX_CORE_HOST_PRIV_H_ */

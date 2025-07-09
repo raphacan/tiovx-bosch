@@ -303,7 +303,11 @@ enum vx_kernel_e {
     */
     VX_KERNEL_MOVE = VX_KERNEL_BASE(VX_ID_KHRONOS, VX_LIBRARY_KHR_BASE) + 0x42,
 
-    /* insert new kernels here */
+    /*! \brief The select multi kernel.
+    * \see group_control_flow
+    */
+    VX_KERNEL_SELECT_MULTI = VX_KERNEL_BASE(VX_ID_KHRONOS, VX_LIBRARY_KHR_BASE) + 0x43,
+
 };
 
 #ifdef  __cplusplus

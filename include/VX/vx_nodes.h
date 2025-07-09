@@ -404,6 +404,25 @@ VX_API_ENTRY vx_node VX_API_CALL vxXorNode(vx_graph graph, vx_image in1, vx_imag
  */
 VX_API_ENTRY vx_node VX_API_CALL vxNotNode(vx_graph graph, vx_image input, vx_image output);
 
+/*! \brief [Graph] Selects one of two data objects depending on the the value of a condition (uint8 scalar), and copies its data into another data object.
+ * \details This node supports predicated execution flow within a graph. All the data objects passed to this kernel shall
+ * have the same object type and meta data. It is important to note that an implementation may optimize away the select and copy when virtual data
+ * objects are used.\n
+ * If there is a kernel node that contribute only into virtual data objects during the graph execution due to certain data path being eliminated by not
+ * taken argument of select node, then the OpenVX implementation guarantees that there will not be any side effects to graph execution and node state.\n
+ * If the path to a select node contains non-virtual objects, user nodes, or  nodes with completion callbacks, then that path may not be "optimized out"
+ * because the callback must be executed and the non-virtual objects must be modified.
+ * \param [in] graph The reference to the graph.
+ * \param [in] condition <tt>\ref VX_TYPE_UINT8</tt> predicate variable.
+ * \param [in] inputs[] up to 4 inputs representing the possible branches
+ * \param [in] num_inputs amount of possible inputs, minium 2, maximum 4
+ * \param [out] output Output data object.
+ * \return <tt>\ref vx_node</tt>.
+ * \retval vx_node A node reference. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>
+ * \ingroup group_control_flow
+  */
+VX_API_ENTRY vx_node VX_API_CALL vxSelectNodeMulti(vx_graph graph, vx_scalar condition, vx_reference inputs[], vx_scalar num_inputs, vx_reference output);
+
 /*! \brief [Graph] Creates an pixelwise-multiplication node.
  * \param [in] graph The reference to the graph.
  * \param [in] in1 An input image, <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_S16</tt>.

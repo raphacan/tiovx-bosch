@@ -618,6 +618,7 @@ static void ownTargetNodeDescNodeExecute(tivx_target target, tivx_obj_desc_node_
     /* if node is already executed do nothing */
     if( tivxFlagIsBitSet(node_obj_desc->flags,TIVX_NODE_FLAG_IS_EXECUTED) == (vx_bool)vx_false_e ) /* TIOVX-1930- LDRA Uncovered Branch Id: TIOVX_BRANCH_COVERAGE_TIVX_TARGET_UBR021 */
     {
+        VX_PRINT(VX_ZONE_INFO, "Running %s\n", ((vx_reference)(uintptr_t)node_obj_desc->base.host_ref)->name);
         /* check if same node in previous pipeline instance is blocked, if yes then
          * dont acquire parameters for this node
          */
@@ -750,6 +751,10 @@ static void ownTargetNodeDescNodeExecute(tivx_target target, tivx_obj_desc_node_
                     node_obj_desc->prev_pipe_node_id
             ); /* TIOVX-1967- LDRA Uncovered Branch Id: TIOVX_BRANCH_COVERAGE_RTOS_TIVX_TARGET_UBR047 */
         }
+    }
+    else
+    {
+        VX_PRINT(VX_ZONE_INFO, "Skipping %s\n", ((vx_reference)(uintptr_t)node_obj_desc->base.host_ref)->name);
     }
 }
 

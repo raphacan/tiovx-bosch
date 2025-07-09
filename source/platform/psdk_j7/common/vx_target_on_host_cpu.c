@@ -83,6 +83,12 @@ static void ownTargetNodeDescNodeExecuteUserKernel(tivx_obj_desc_node_t *node_ob
     {
         prm_ref[i] = ownReferenceGetHandleFromObjDescId(prm_obj_desc_id[i]);
     }
+    /* Add node descriptor as an extra parameter if this is the SELECT kernel */
+    if (VX_KERNEL_SELECT_MULTI == node_obj_desc->kernel_id)
+    {
+        /* Index cannot be out of range, guaranteed by the check in vx_select.h */
+        prm_ref[i] = (vx_reference)node_obj_desc;
+    }
     node_obj_desc->exe_status = (uint32_t)ownNodeUserKernelExecute((vx_node)(uintptr_t)node_obj_desc->base.host_ref, prm_ref);
 }
 

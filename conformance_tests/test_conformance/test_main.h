@@ -81,6 +81,7 @@ TESTCASE(FastCorners)
 TESTCASE(HarrisCorners)
 
 TESTCASE(Scale)
+TESTCASE(SelectMulti)
 TESTCASE(WarpAffine)
 TESTCASE(WarpPerspective)
 TESTCASE(Remap)

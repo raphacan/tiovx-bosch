@@ -903,3 +903,23 @@ VX_API_ENTRY vx_node VX_API_CALL vxMoveNode(vx_graph graph, vx_reference first, 
                                            dimof(params));
     return node;
 }
+
+VX_API_ENTRY vx_node VX_API_CALL vxSelectNodeMulti(vx_graph graph, vx_scalar condition, vx_reference inputs[], vx_scalar num_inputs, vx_reference output)
+{
+    vx_node node;
+    /* Attempt to restrict any trivial Select nodes by recognising them here */
+
+    vx_reference params[] = 
+    {
+        (vx_reference)condition,
+        inputs[0],
+        inputs[1],
+        inputs[2],
+        inputs[3],
+        num_inputs,
+        output
+    };
+    node = tivxCreateNodeByKernelEnum(graph, VX_KERNEL_SELECT_MULTI, params, dimof(params));
+    
+    return node;
+}

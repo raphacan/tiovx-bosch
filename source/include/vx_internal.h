@@ -93,7 +93,7 @@
 #include <tivx_log_resource.h>
 #include <tivx_kernels_common_utils.h>
 #include <vx_copy_swap.h>
-
+#include <vx_select_multi.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -109,6 +109,7 @@ static Tivx_Host_Kernel_List  gTivx_host_kernel_list[] = {
     {tivxAddKernelPhase, tivxRemoveKernelPhase},
     {tivxAddKernelRemap, tivxRemoveKernelRemap},
     {tivxAddKernelScale, tivxRemoveKernelScale},
+    {tivxAddKernelSelectMulti, tivxRemoveKernelSelectMulti},
     {tivxAddKernelSobel3X3, tivxRemoveKernelSobel3X3},
     {tivxAddKernelSub, tivxRemoveKernelSub},
     {tivxAddKernelSwap, tivxRemoveKernelSwap},

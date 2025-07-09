@@ -942,6 +942,13 @@ vx_status ownNodeUserKernelExecute(vx_node node, vx_reference prm_ref[])
                             }
                         }
 
+                        /* Copy the extra parameter containing the node descriptor if this is the select kernel */
+                        if (VX_KERNEL_SELECT == node->kernel->enumeration)
+                        {
+                            /* Index cannot be out of range, guaranteed by the check in vx_select.h */
+                            params[i] = prm_ref[i];
+                        }
+
                         ownNodeUserKernelSetParamsAccesible(node->kernel, params, num_params, (vx_bool)vx_true_e);
 
                         tivxCheckStatus(&status, node->kernel->function(node, params, num_params));
@@ -1547,7 +1554,7 @@ VX_API_ENTRY vx_node VX_API_CALL vxCreateGenericNode(vx_graph graph, vx_kernel k
                         node->is_timed_out = (vx_bool)vx_false_e;
                         node->is_initialized = (vx_bool)vx_false_e;
 
-                        /* assign refernce type specific callback's */
+                        /* assign reference type specific callback's */
                         node->base.destructor_callback = &ownDestructNode;
                         node->base.mem_alloc_callback = NULL;
                         node->base.release_callback = &ownReleaseReferenceBufferGeneric;
