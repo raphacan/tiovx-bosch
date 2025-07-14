@@ -25,6 +25,8 @@
 
 #include <VX/vx.h>
 #include <VX/vx_khr_pipelining.h>
+
+#if defined(BUILD_GC)
 #if defined(LINUX) || defined(QNX)
 #include <VX/vx_khr_producer.h>
 #include <VX/vx_khr_consumer.h>
@@ -75,9 +77,18 @@
 #include <vx_objarray.h>
 #include <vx_array.h>
 #include <vx_user_data_object.h>
+
+#if defined(BUILD_GC)
 #if defined(LINUX) || defined(QNX)
-#include <vx_producer.h>
-#include <vx_consumer.h>
+
+#if defined(IPPC_SHEM_ENABLED)
+#include <RB/vx_producer_ippc.h>
+#include <RB/vx_consumer_ippc.h>
+#elif defined(SOCKET_ENABLED)
+#include <RB/vx_producer_sock.h>
+#include <RB/vx_consumer_sock.h>
+#endif
+
 #endif
 #include <tivx_raw_image.h>
 #include <tivx_super_node.h>
@@ -212,4 +223,3 @@ static inline void tivx_uint64_to_uint32(uint64_t val, volatile uint32_t *h, vol
 #endif
 
 #endif
-

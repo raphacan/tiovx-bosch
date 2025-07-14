@@ -25,7 +25,6 @@
 #define OPENVX_KHR_CONSUMER  "vx_khr_consumer"
 
 #include <VX/vx.h>
-#include <vx_gw_common.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -36,6 +35,11 @@ extern "C"
  * \ingroup group_vx_consumer
  */
 typedef struct _vx_consumer *vx_consumer;
+
+/*! \brief The Consumer param Object. Consumer param Object is a strongly-typed container for other data structures.
+ * \ingroup group_vx_producer
+ */
+typedef struct _vx_gc_cons_params_t *vx_gc_cons_params_t;
 
 /*! \brief The object type enumeration for consumer object
  * \ingroup group_vx_consumer
@@ -51,6 +55,18 @@ typedef struct _vx_consumer *vx_consumer;
  * \ingroup group_vx_consumer
  */
 #define VX_MAX_ACCESS_POINT_NAME 32
+
+/*! \brief The consumer connector status
+ * \ingroup group_vx_consumer
+ */
+typedef enum
+{
+    VX_CONS_STATUS_SUCCESS       = 0U,
+    VX_CONS_STATUS_FAILURE       = 1U,
+    VX_CONS_STATUS_REF_DROP      = 2U,
+    VX_CONS_STATUS_GRAPH_READY   = 3U, 
+    VX_CONS_STATUS_FLUSHED       = 4U,
+} vx_gc_consumer_status_e;
 
 /**
  * \brief The error codes for the communication protocol between the producer and the consumer.
@@ -80,7 +96,7 @@ typedef vx_enum vx_comm_error;
  * 
  * \ingroup group_vx_consumer
  */
-typedef vx_status (*vxConsumerCreateCallback)(
+typedef vx_status (*vx_consumer_create_graph_f)(
     void*        graph_obj,
     vx_reference refs[],
     vx_uint32   num_refs);
@@ -99,7 +115,7 @@ typedef vx_status (*vxConsumerCreateCallback)(
  * 
  * \ingroup group_vx_consumer
  */
-typedef vx_status (*vxConsumerDequeueCallback)(
+typedef vx_status (*vx_consumer_dequeue_f)(
     void*        graph_obj,
     vx_reference dequeued_refs[],
     vx_uint32*   num_dequeued_refs);
@@ -117,7 +133,7 @@ typedef vx_status (*vxConsumerDequeueCallback)(
  * 
  * \ingroup group_vx_consumer
  */
-typedef vx_status (*vxConsumerEnqueueCallback)(
+typedef vx_status (*vx_consumer_enqueue_f)(
     void*        graph_obj,
     vx_reference enqueue_ref);
 
@@ -132,7 +148,7 @@ typedef vx_status (*vxConsumerEnqueueCallback)(
  * 
  * \ingroup group_vx_consumer
  */
-typedef vx_status (*vxConsumerStoreMetadataCallback)(
+typedef vx_status (*vx_receive_meta_callback_f)(
     void*        graph_obj,
     vx_reference ref,
     void*        metadata,
@@ -150,25 +166,6 @@ typedef vx_status (*vxConsumerStoreMetadataCallback)(
 typedef void (*vxConsumerRecoveryCallback)(void* graph_obj);
 
 /*!
- * \brief Consumer callbacks
- *
- * \ingroup group_vx_consumer
- */
-typedef struct _vx_subscriber_cb_t
-{
-    /*! \brief The Create function */
-    vxConsumerCreateCallback           createCallback;
-    /*! \brief The Dequeue function */
-    vxConsumerDequeueCallback          dequeueCallback;
-    /*! \brief The Enqueue function */
-    vxConsumerEnqueueCallback          enqueueCallback;
-    /*! \brief The Function pointer to import metadata */
-    vxConsumerStoreMetadataCallback    storeMetadataCallback;
-    /*! \brief The recovery function */
-    vxConsumerRecoveryCallback         recoveryCallback;
-} vx_subscriber_cb_t;
-
-/*!
  * \brief Parameters for consumer
  *
  * \ingroup group_vx_consumer
@@ -176,25 +173,29 @@ typedef struct _vx_subscriber_cb_t
 typedef struct _vx_consumer_params_t
 {
     /*! \brief name of the consumer client */
-    vx_char             name[VX_MAX_CONSUMER_NAME];
+    vx_char name[VX_MAX_CONSUMER_NAME];
     /*! \brief name of the access point b/w producer and consumer */
-    vx_char             access_point_name[VX_MAX_ACCESS_POINT_NAME];
-
+    vx_char access_point_name[VX_MAX_ACCESS_POINT_NAME];
+    vx_consumer_create_graph_f  create_graph_callback; /*!<\brief The callback function that will be called when all the buffers were received after the initialization phase,
+    so that the consumer can create its own objects, build and verify the graph with the imported input buffers. */
+    vx_consumer_enqueue_f       enqueue_callback; /*!<\brief The callback function that will be called when new buffer(s) is(are) received by the consumer server.
+    This(these) buffer(s) can be enqueued into the consumer graph or used by any kind of algo. */
+    vx_consumer_dequeue_f       dequeue_callback; /*!<\brief This callback function must be used to return buffer(s) back */
+    /*! \brief The Function pointer to import metadata */
+    vx_receive_meta_callback_f  receive_metadata_callback;
+    /*! \brief The recovery function */
+    vxConsumerRecoveryCallback      recovery_callback;
     /*! \brief references importeds from producer */
     vx_reference*       ref_to_import;
 
     /*! \brief pointer to the consumer graph object */
     void*               graph_obj;
-    /*! \brief pointer to store consumer function callbacks */
-    vx_subscriber_cb_t  subscriber_cb;
     /*! \brief Contains relative receiver id */
     vx_uint8            consumer_id;
     /*! \brief Time taken to wait for producer to connect in milliseconds */
     vx_uint32           connect_polling_time;
-#ifdef IPPC_SHEM_ENABLED
-    /*! \brief Contains ippc port configuration */
-    SIppcPortMap        ippc_port[IPPC_PORT_COUNT];
-#endif
+    /*! \brief structure to store connector specific params */
+    vx_gc_cons_params_t gc_params;
 } vx_consumer_params_t;
 
 /**
