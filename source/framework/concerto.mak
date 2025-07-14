@@ -42,22 +42,8 @@ endif
 ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), R5F C66 C71 C7120 C7504 C7524))
 CSOURCES_EXCLUDE := vx_producer.c vx_consumer.c
 CSOURCES := $(filter-out $(CSOURCES_EXCLUDE), $(CSOURCES))
-endif
-
-ifeq ($(CONNECTOR_TP), IPPC_SHEM)
-DEFS += IPPC_SHEM_ENABLED
-DEFS += BUILD_GW
-endif
-ifeq ($(CONNECTOR_TP), SOCKET)
-DEFS += SOCKET_ENABLED
-DEFS += BUILD_GW
-endif
-
-ifeq ($(findstring BUILD_GW, $(DEFS)),)
-$(info Building without $(CONNECTOR_TP))
-CSOURCES := $(filter-out vx_producer.c vx_consumer.c, $(CSOURCES))
 else
-$(info Building with consumer producer)
+DEFS += BUILD_GC
 endif
 
 ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), X86 x86_64 C66))
