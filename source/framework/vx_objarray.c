@@ -202,7 +202,7 @@ VX_API_ENTRY vx_object_array VX_API_CALL vx_createObjectArrayImportedRefs( vx_co
                 									(objarr->base.type == (vx_enum)VX_TYPE_OBJECT_ARRAY))
             {
                 /* assign reference type specific callbacks */
-                objarr->base.destructor_callback = (tivx_reference_destructor_callback_f)&ownDestructObjArray;
+                objarr->base.destructor_callback = (tivx_reference_callback_f)&ownDestructObjArray;
                 objarr->base.mem_alloc_callback = &ownAllocObjectArrayBuffer;
                 objarr->base.release_callback =
                     (tivx_reference_release_callback_f)&ownReleaseReferenceBufferGeneric;

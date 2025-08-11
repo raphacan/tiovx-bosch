@@ -60,6 +60,7 @@ ifeq ($(TARGET_PLATFORM),PC)
 		IDIRS += $(VISION_APPS_PATH)/platform/$(SOC)/rtos
 		IDIRS += $(TIOVX_PATH)/source/platform/common/os/posix
 		IDIRS += $(TIOVX_PATH)/source/platform/common/targets
+		IDIRS += $(HOST_ROOT)/utils/include
 
 		DEFS  += _DISABLE_TIDL
 		IDIRS += $(CUSTOM_KERNEL_PATH)/include

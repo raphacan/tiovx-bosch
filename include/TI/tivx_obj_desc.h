@@ -293,8 +293,6 @@ typedef enum _tivx_tensor_create_type_e
     TIVX_TENSOR_VIRTUAL,
     /*! \brief Create using vxCreateTensorFromHandle() */
     TIVX_TENSOR_FROM_HANDLE,
-    /*! \brief Create using vxCreateTensorFromROI() */
-    TIVX_TENSOR_FROM_ROI,
     /*! \brief Create using vxCreateTensorFromChannel() */
     TIVX_TENSOR_FROM_CHANNEL
 

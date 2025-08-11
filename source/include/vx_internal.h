@@ -31,6 +31,7 @@
 #include <VX/vx_khr_producer.h>
 #include <VX/vx_khr_consumer.h>
 #endif
+#endif
 #include <VX/vx_khr_swap_move.h>
 #include <VX/vx_khr_supplementary_data.h>
 #include <TI/tivx.h>
@@ -90,6 +91,8 @@
 #endif
 
 #endif
+#endif
+
 #include <tivx_raw_image.h>
 #include <tivx_super_node.h>
 #include <vx_tensor.h>

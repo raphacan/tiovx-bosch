@@ -126,6 +126,7 @@ typedef struct _tivx_object_t
     vx_bool                 isConsumerUse[TIVX_CONSUMER_MAX_OBJECTS];
     /**< Flag indicating if Consumer object is in use or not */
 #endif
+#endif
     tivx_raw_image_t raw_image[TIVX_RAW_IMAGE_MAX_OBJECTS];
     /**< Raw Image Objects */
     vx_bool                 isRawImageUse[TIVX_RAW_IMAGE_MAX_OBJECTS];

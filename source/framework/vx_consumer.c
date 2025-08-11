@@ -27,7 +27,7 @@ vx_int32 getBufferIdForConsumer(vx_reference buffer_ref, vx_reference* reference
     {
         if (reference_array[buffer_id] == buffer_ref)
         {
-            VX_PRINT(VX_ZONE_REFERENCE, "CONSUMER: found a buffer ref %p at index %d \n", buffer_ref, buffer_id);
+            VX_PRINT(VX_ZONE_INFO, "CONSUMER: found a buffer ref %p at index %d \n", buffer_ref, buffer_id);
             break;
         }
     }

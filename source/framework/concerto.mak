@@ -19,6 +19,9 @@ TARGET      := vx_framework
 TARGETTYPE  := library
 CSOURCES    := $(call all-c-files)
 IDIRS       += $(HOST_ROOT)/source/include
+IDIRS       += $(HOST_ROOT)/utils/include
+IDIRS       += $(PSDK_PATH)/app_utils
+IDIRS       += $(IPPC_PATH)
 
 ifeq ($(LDRA_COVERAGE_ENABLED), yes)
 	include $(TIOVX_PATH)/tiovx_dev/internal_docs/coverage_files/concerto_inc.mak

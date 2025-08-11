@@ -34,13 +34,13 @@ ifeq ($(TARGET_CPU),$(filter $(TARGET_CPU), A72 A53))
 		$(TARGET_FILES_REL_PATH)/tivx_target_config.c
 	
 	ifeq ($(CONNECTOR_TP),IPPC_SHEM)
-		CSOURCES += $(COMMON_FILES_REL_PATH)/vx_producer_ippc.c $(COMMON_FILES_REL_PATH)/vx_consumer_ippc.c
+		CSOURCES += $(OS_FILES_REL_PATH)/vx_producer_ippc.c $(OS_FILES_REL_PATH)/vx_consumer_ippc.c
 		DEFS += IPPC_SHEM_ENABLED
 		DEFS += BUILD_GC
 	endif
 
 	ifeq ($(CONNECTOR_TP),SOCKET)
-		CSOURCES += $(COMMON_FILES_REL_PATH)/vx_producer_sock.c $(COMMON_FILES_REL_PATH)/vx_consumer_sock.c
+		CSOURCES += $(OS_FILES_REL_PATH)/vx_producer_sock.c $(OS_FILES_REL_PATH)/vx_consumer_sock.c
 		DEFS += SOCKET_ENABLED
 		DEFS += BUILD_GC
 	endif
@@ -50,6 +50,8 @@ ifeq ($(TARGET_CPU),$(filter $(TARGET_CPU), A72 A53))
 	IDIRS       += $(TIOVX_PATH)/source/platform/common/os/posix
 	IDIRS       += $(TIOVX_PATH)/source/platform/board/common
 	IDIRS       += $(APP_UTILS_PATH)
+	IDIRS       += $(HOST_ROOT)/utils/include
+	IDIRS       += $(IPPC_PATH)
 
 	DEFS += TARGET_HLOS
 

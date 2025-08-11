@@ -8903,7 +8903,7 @@ TEST(tivxGraphPipeline2, testEnqueuecountWithPyramidAndEnqueueSingleImage)
  * It was exhibited that due to pipelinig, in_node_done_count was overwritten when the same reference is acquired for the next
  * pipeline id while the first has not finished yet. This resulted in receiving one too few reference consumed events when dequeuing. 
 */                   
-TEST(tivxGraphPipeline, testMultipleEnqueueOnSameNodeOnlyTwoGraphParams)
+TEST(tivxGraphPipeline2, testMultipleEnqueueOnSameNodeOnlyTwoGraphParams)
 {
     /* We should be able to enqueue the same reference on two separate inputs on the same graph 
       and also on another graph at the same time */
@@ -9156,7 +9156,7 @@ TESTCASE_TESTS(tivxGraphPipeline2,
     testEnqueuecountWithKernelAcceptingObjectArrays,
     testEnqueuecountWithPyramid,
     testEnqueuecountWithPyramidAndEnqueueSingleImage,
-    testMultipleEnqueueOnSameNodeOnlyTwoGraphParams,
+    testMultipleEnqueueOnSameNodeOnlyTwoGraphParams
 )
 
 TESTCASE_TESTS(

@@ -719,8 +719,8 @@ TEST(tivxTensor, testCreateTensorFromROI)
             vx_uint8 *pp = (vx_uint8 *)vxFormatImagePatchAddress2d(iptr, i, j, &addr);
             *pp = 0;
         }
-    for (i = 0; i < good_rect.end_x - good_rect.start_x && VX_SUCCESS == status; ++i)
-        for (j = 0; j < good_rect.end_y - good_rect.start_y && VX_SUCCESS == status; ++j)
+    for (i = 0; (i < (good_rect.end_x - good_rect.start_x)) && (VX_SUCCESS == status); ++i)
+        for (j = 0; (j < (good_rect.end_y - good_rect.start_y)) && (VX_SUCCESS == status); ++j)
         {
             if (*(vxFormatArrayPointer(tptr, j, strides[1]) + i))
                 status = VX_FAILURE;
@@ -732,8 +732,8 @@ TEST(tivxTensor, testCreateTensorFromROI)
             vx_uint8 *pp = (vx_uint8 *)vxFormatImagePatchAddress2d(iptr, i, j, &addr);
             *pp = k++;
         }
-    for (i = 0; i < good_rect.end_x - good_rect.start_x && VX_SUCCESS == status; ++i)
-        for (j = 0; j < good_rect.end_y - good_rect.start_y && VX_SUCCESS == status; ++j)
+    for (i = 0; (i < (good_rect.end_x - good_rect.start_x)) && (VX_SUCCESS == status); ++i)
+        for (j = 0; (j < (good_rect.end_y - good_rect.start_y)) && (VX_SUCCESS == status); ++j)
         {
             k = (j + good_rect.start_y) + (i + good_rect.start_x) * full_rect.end_y;
             if (*(vxFormatArrayPointer(tptr, j, strides[1]) + i) != k)
@@ -742,8 +742,8 @@ TEST(tivxTensor, testCreateTensorFromROI)
     ASSERT_EQ_VX_STATUS(status, VX_SUCCESS);
     /* Now, change the tensor data; we should see the changes only in the ROI part of the image */
     status = VX_SUCCESS;
-    for (i = 0; i < good_rect.end_x - good_rect.start_x == status; ++i)
-        for (j = 0; j < good_rect.end_y - good_rect.start_y == status; ++j)
+    for (i = 0; (i < (good_rect.end_x - good_rect.start_x)) && (VX_SUCCESS == status); ++i)
+        for (j = 0; (j < (good_rect.end_y - good_rect.start_y)) && (VX_SUCCESS == status); ++j)
         {
             ++*(vxFormatArrayPointer(tptr, j, strides[1]) + i);
         }

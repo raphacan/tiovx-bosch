@@ -234,7 +234,7 @@ vx_int32 getBufferIdForProducer(vx_reference current_ref, vx_producer producer)
     {
         if (producer->prod_base.refs[buffer_id].ovx_ref == current_ref)
         {
-            VX_PRINT(VX_ZONE_REFERENCE, "PRODUCER found a buffer ref %p at index %d \n", current_ref, buffer_id);
+            VX_PRINT(VX_ZONE_INFO, "PRODUCER found a buffer ref %p at index %d \n", current_ref, buffer_id);
             break;
         }
     }
