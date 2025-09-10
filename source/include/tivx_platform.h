@@ -246,12 +246,19 @@ void ownPlatformPrintf(const char *format);
 void ownPlatformWriteLogString(vx_uint32 zone, const char *string);
 
 /*!
+ * \brief For the given zone and debug zone mask returns non zero if the zone is enabled,
+ *
+ * \ingroup group_tivx_platform
+ */
+int ownPlatformIsZoneEnabled(vx_enum zone, vx_uint32 debug_zonemask);
+
+/*!
  * \brief Returns non zero if ownPlatformWriteLogString() function is enabled,
  *        otherwise, ownPlatformPrintf() must be used
  *
  * \ingroup group_tivx_platform
  */
-int ownPlatformIsWriteLogStringEnsbled();
+int ownPlatformIsWriteLogStringEnabled();
 
 /*!
  * \brief Function to set the target configuration

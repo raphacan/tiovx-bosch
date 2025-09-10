@@ -246,7 +246,12 @@ void ownPlatformWriteLogString(vx_uint32 zone, const char *string)
 
 }
 
-int ownPlatformIsWriteLogStringEnsbled()
+int ownPlatformIsZoneEnabled(vx_enum zone, vx_uint32 debug_zonemask)
+{
+    return tivx_is_zone_enabled_in_debug_zonemask(zone, debug_zonemask);
+}
+
+int ownPlatformIsWriteLogStringEnabled()
 {
     return 0;
 }
