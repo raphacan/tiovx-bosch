@@ -36,7 +36,12 @@ void ownPlatformWriteLogString(vx_uint32 zone, const char *string)
     appLogWriteString(zone, string);
 }
 
-int ownPlatformIsWriteLogStringEnsbled()
+int ownPlatformIsZoneEnabled(vx_enum zone, vx_uint32 debug_zonemask)
+{
+    return appLogIsZoneEnabled(zone, debug_zonemask);
+}
+
+int ownPlatformIsWriteLogStringEnabled()
 {
     return appLogIsWriteCallbackEnabled();
 }
