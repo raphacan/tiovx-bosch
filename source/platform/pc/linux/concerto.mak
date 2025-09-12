@@ -36,6 +36,18 @@ ifeq ($(TARGET_PLATFORM),PC)
 			CSOURCES    += $(TARGET_FILES_REL_PATH)/tivx_target_config_c66.c
 		endif
 
+		ifeq ($(CONNECTOR_TP),IPPC_SHEM)
+			CSOURCES += $(OS_FILES_REL_PATH)/vx_producer_ippc.c $(OS_FILES_REL_PATH)/vx_consumer_ippc.c
+			DEFS += IPPC_SHEM_ENABLED
+			DEFS += BUILD_GC
+		endif
+
+		ifeq ($(CONNECTOR_TP),SOCKET)
+			CSOURCES += $(OS_FILES_REL_PATH)/vx_producer_sock.c $(OS_FILES_REL_PATH)/vx_consumer_sock.c
+			DEFS += SOCKET_ENABLED
+			DEFS += BUILD_GC
+		endif
+
 		DEFS  += LDRA_UNTESTABLE_CODE
 		# This is used to signify which sections of code is only applicable
 		# for the host for code coverage purposes. It has been left defined
@@ -48,6 +60,7 @@ ifeq ($(TARGET_PLATFORM),PC)
 		IDIRS += $(VISION_APPS_PATH)/platform/$(SOC)/rtos
 		IDIRS += $(TIOVX_PATH)/source/platform/common/os/posix
 		IDIRS += $(TIOVX_PATH)/source/platform/common/targets
+		IDIRS += $(HOST_ROOT)/utils/include
 
 		DEFS  += _DISABLE_TIDL
 		IDIRS += $(CUSTOM_KERNEL_PATH)/include

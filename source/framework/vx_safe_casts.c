@@ -124,7 +124,12 @@ DEFINE_SAFE_CASTS(threshold, Threshold, THRESHOLD)
 #ifdef VX_TYPE_USER_DATA_OBJECT
 DEFINE_SAFE_CASTS(user_data_object, UserDataObject, USER_DATA_OBJECT)
 #endif
-
+#ifdef VX_TYPE_PRODUCER
+DEFINE_SAFE_CASTS(producer, Producer, PRODUCER)
+#endif
+#ifdef VX_TYPE_CONSUMER
+DEFINE_SAFE_CASTS(consumer, Consumer, CONSUMER)
+#endif
 /*! \brief safely get a new vx_reference for the given tivx_raw_image variable*/
 VX_API_ENTRY vx_reference vxGetRefFromRawImage(const tivx_raw_image *type_name)
 {
