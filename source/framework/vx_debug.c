@@ -83,11 +83,16 @@ vx_uint32 ownGetGlobalZonemask(void)
 
 vx_bool tivx_is_zone_enabled(vx_enum zone)
 {
+    return tivx_is_zone_enabled_in_debug_zonemask(zone, (vx_uint32)g_debug_zonemask);
+}
+
+vx_bool tivx_is_zone_enabled_in_debug_zonemask(vx_enum zone, vx_uint32 debug_zonemask)
+{
     vx_bool zone_enabled;
 
     if ( (0 <= zone) && (zone < (vx_enum)VX_ZONE_MAX) )
     {
-        zone_enabled = (((vx_uint32)g_debug_zonemask & ZONE_BIT((vx_uint32)zone)) != (vx_uint32)vx_false_e) ? (vx_bool)vx_true_e : (vx_bool)vx_false_e;
+        zone_enabled = ((debug_zonemask & ZONE_BIT((vx_uint32)zone)) != (vx_uint32)vx_false_e) ? (vx_bool)vx_true_e : (vx_bool)vx_false_e;
     }
     else
     {
@@ -98,7 +103,7 @@ vx_bool tivx_is_zone_enabled(vx_enum zone)
 
 static void tivx_print(vx_enum zone, vx_uint32 debug_zonemask, const char *format, va_list ap)
 {
-    if ((debug_zonemask & ZONE_BIT((vx_uint32)zone)) != 0U)
+    if (0 != ownPlatformIsZoneEnabled(zone, debug_zonemask))
     {
         uint32_t size;
         char string[1024];

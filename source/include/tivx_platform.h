@@ -239,6 +239,13 @@ void ownPlatformDeInit(void);
 void ownPlatformPrintf(const char *format);
 
 /*!
+ * \brief For the given zone and debug zone mask returns non zero if the zone is enabled,
+ *
+ * \ingroup group_tivx_platform
+ */
+int ownPlatformIsZoneEnabled(vx_enum zone, vx_uint32 debug_zonemask);
+
+/*!
  * \brief Function to set the target configuration
  *
  *        It creates target and adds it to the list of targets supported

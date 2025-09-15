@@ -148,11 +148,18 @@ void tivx_set_debug_zone(vx_enum zone);
  */
 void tivx_clr_debug_zone(vx_enum zone);
 
-/*! \brief Returns true or false if the zone bit is set or cleared.
+/*! \brief Returns true or false if the global zone bit is set or cleared.
  * \param [in] zone The debug zone from \ref tivx_debug_zone_e.
  * \ingroup group_vx_debug
  */
 vx_bool tivx_is_zone_enabled(vx_enum zone);
+
+/*! \brief Returns true or false if the zone bit is set or cleared within given debug zone mask.
+ * \param [in] zone The debug zone from \ref tivx_debug_zone_e.
+ * \param [in] debug_zonemask The debug zone bitmask for the check
+ * \ingroup group_vx_debug
+ */
+vx_bool tivx_is_zone_enabled_in_debug_zonemask(vx_enum zone, vx_uint32 debug_zonemask);
 
 /*! \brief Returns the debug zonemask value of a node
  * \param [in] node A given vx_node object.
@@ -203,4 +210,3 @@ const char * tivxGetGraphName(vx_graph graph);
 #endif
 
 #endif
-

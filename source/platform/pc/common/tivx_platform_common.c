@@ -200,6 +200,11 @@ void ownPlatformPrintf(const char *format)
     printf(buf);
 }
 
+int ownPlatformIsZoneEnabled(vx_enum zone, vx_uint32 debug_zonemask)
+{
+    return tivx_is_zone_enabled_in_debug_zonemask(zone, debug_zonemask);
+}
+
 void ownPlatformActivate()
 {
 }
@@ -217,6 +222,3 @@ void ownPlatformGetTargetPerfStats(uint32_t app_cpu_id, uint32_t target_values[T
         target_values[i] = 0;
     }
 }
-
-
-

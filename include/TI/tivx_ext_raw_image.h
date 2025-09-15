@@ -124,6 +124,10 @@ typedef struct _tivx_raw_image_create_params_t {
                                                  (uses the same width as original sensor readout width) */
     volatile vx_uint32 meta_height_after;     /*!< \brief Number of lines of meta data at bottom of sensor readout  (after pixel data)
                                                  (uses the same width as original sensor readout width) */
+    volatile vx_bool meta_on_separate_channel;/*!< \brief If meta data comes on same CSI channel as the image data, this setting should be vx_false_e; however
+                                            if it comes on a separate CSI channel (0x12), then this setting should be vx_true_e.  User must ensure that the
+                                            either meta_height_before or meta_height_before is > 0 and is allocated enough lines to contain the full meta
+                                            data readout */ 
 } tivx_raw_image_create_params_t;
 
 /*! \brief The raw image attributes.

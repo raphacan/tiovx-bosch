@@ -19,12 +19,22 @@ TARGET      := vx_framework
 TARGETTYPE  := library
 CSOURCES    := $(call all-c-files)
 IDIRS       += $(HOST_ROOT)/source/include
+IDIRS       += $(HOST_ROOT)/utils/include
+IDIRS       += $(PSDK_PATH)/app_utils
+IDIRS       += $(IPPC_PATH)
 
 ifeq ($(LDRA_COVERAGE_ENABLED), yes)
 	include $(TIOVX_PATH)/tiovx_dev/internal_docs/coverage_files/concerto_inc.mak
 else
 	DEFS += HOST_ONLY
 	DEFS += LDRA_UNTESTABLE_CODE
+endif
+
+ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), R5F C66 C71 C7120 C7504 C7524))
+CSOURCES_EXCLUDE := vx_producer.c vx_consumer.c
+CSOURCES := $(filter-out $(CSOURCES_EXCLUDE), $(CSOURCES))
+else
+DEFS += BUILD_GC
 endif
 
 ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), x86_64 C66))

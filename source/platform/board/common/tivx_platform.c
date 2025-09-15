@@ -77,6 +77,11 @@ void ownPlatformPrintf(const char *format)
     appLogPrintf(format);
 }
 
+int ownPlatformIsZoneEnabled(vx_enum zone, vx_uint32 debug_zonemask)
+{
+    return appLogIsZoneEnabled(zone, debug_zonemask);
+}
+
 void ownPlatformActivate(void)
 {
 
