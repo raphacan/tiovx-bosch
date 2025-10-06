@@ -458,9 +458,9 @@ static vx_reference ownCreateRawImageFromExemplar(
     (void)tivxQueryRawImage(exemplar, (vx_enum)TIVX_RAW_IMAGE_FORMAT, &params.format, sizeof(params.format));
     (void)tivxQueryRawImage(exemplar, (vx_enum)TIVX_RAW_IMAGE_META_HEIGHT_BEFORE, &params.meta_height_before, sizeof(params.meta_height_before));
     (void)tivxQueryRawImage(exemplar, (vx_enum)TIVX_RAW_IMAGE_META_HEIGHT_AFTER, &params.meta_height_after, sizeof(params.meta_height_after));
+    (void)tivxQueryRawImage(exemplar, (vx_enum)TIVX_RAW_IMAGE_META_ON_SEPARATE_CHANNEL, &params.meta_on_separate_channel, sizeof(params.meta_on_separate_channel));
 
     img = tivxCreateRawImage(context, &params);
 
     return (vx_reference)img;
 }
-

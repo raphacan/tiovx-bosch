@@ -199,122 +199,113 @@ typedef enum _tivx_target_id_e {
     /*! \brief target ID for MCU2-0 */
     TIVX_TARGET_ID_MCU2_0 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 0u),
 
-    /*! \brief target ID for VPAC1 NF */
-    TIVX_TARGET_ID_VPAC_NF = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 1u),
+    /*! \brief target ID for MCU4-1 */
+    TIVX_TARGET_ID_MCU4_1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 0u),
 
-    /*! \brief target ID for VPAC1 LDC1 */
-    TIVX_TARGET_ID_VPAC_LDC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 2u),
-
-    /*! \brief target ID for VPAC1 MSC1 */
-    TIVX_TARGET_ID_VPAC_MSC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 3u),
-
-    /*! \brief target ID for VPAC1 MSC2 */
-    TIVX_TARGET_ID_VPAC_MSC2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 4u),
-
-    /*! \brief target ID for VPAC1 VISS1 */
-    TIVX_TARGET_ID_VPAC_VISS1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 5u),
-
-    /*! \brief target ID for Capture1 */
-    TIVX_TARGET_ID_CAPTURE1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 6u),
-
-    /*! \brief target ID for Capture2 */
-    TIVX_TARGET_ID_CAPTURE2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 7u),
-
-    /*! \brief target ID for Display1 */
-    TIVX_TARGET_ID_DISPLAY1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 8u),
-
-    /*! \brief target ID for Display2 */
-    TIVX_TARGET_ID_DISPLAY2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 9u),
-
-    /*! \brief target ID for CSITX */
-    TIVX_TARGET_ID_CSITX = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 10u),
-
-    /*! \brief target ID for Capture3 */
-    TIVX_TARGET_ID_CAPTURE3 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 11u),
-
-    /*! \brief target ID for Capture4 */
-    TIVX_TARGET_ID_CAPTURE4 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 12u),
-
-    /*! \brief target ID for Capture5 */
-    TIVX_TARGET_ID_CAPTURE5 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 13u),
-
-    /*! \brief target ID for Capture6 */
-    TIVX_TARGET_ID_CAPTURE6 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 14u),
-
-    /*! \brief target ID for Capture7 */
-    TIVX_TARGET_ID_CAPTURE7 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 15u),
-
-    /*! \brief target ID for Capture8 */
-    TIVX_TARGET_ID_CAPTURE8 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 16u),
-
-    /*! \brief target ID for Capture9 */
-    TIVX_TARGET_ID_CAPTURE9 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 17u),
-
-    /*! \brief target ID for Capture10 */
-    TIVX_TARGET_ID_CAPTURE10 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 18u),
-
-    /*! \brief target ID for Capture11 */
-    TIVX_TARGET_ID_CAPTURE11 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 19u),
-
-    /*! \brief target ID for Capture12 */
-    TIVX_TARGET_ID_CAPTURE12 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 20u),
-
-    /*! \brief target ID for Display M2M1 */
-    TIVX_TARGET_ID_DISPLAY_M2M1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 21u),
-    
-    /*! \brief target ID for Display M2M2 */
-    TIVX_TARGET_ID_DISPLAY_M2M2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 22u),
-    
-    /*! \brief target ID for Display M2M3 */
-    TIVX_TARGET_ID_DISPLAY_M2M3 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 23u),
-    
-    /*! \brief target ID for Display M2M4 */
-    TIVX_TARGET_ID_DISPLAY_M2M4 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 24u),
-
-    /*! \brief target ID for CSITX2 */
-    TIVX_TARGET_ID_CSITX2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 25u),
-
-    /*! \brief target ID for FC */
-    TIVX_TARGET_ID_VPAC_FC = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_0, 26u),
-
-    /*! \brief target ID for MCU2-1 */
-    TIVX_TARGET_ID_MCU2_1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_1, 0u),
-
-    /*! \brief target ID for SDE */
-    TIVX_TARGET_ID_DMPAC_SDE = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_1, 1u),
-
-    /*! \brief target ID for DOF */
-    TIVX_TARGET_ID_DMPAC_DOF = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU2_1, 2u),
-
-    /*! \brief target ID for MCU3_0 */
-    TIVX_TARGET_ID_MCU3_0 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU3_0, 0u),
-
-    /*! \brief target ID for MCU3_1 */
-    TIVX_TARGET_ID_MCU3_1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU3_1, 0u),
-
-    /*! \brief target ID for MCU4_0 */
-    TIVX_TARGET_ID_MCU4_0 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 0u),
+    /*! \brief target ID for IPU1-0 */
+    TIVX_TARGET_ID_IPU1_0 = TIVX_TARGET_ID_MCU4_1,
 
     /*! \brief target ID for VPAC2 NF */
-    TIVX_TARGET_ID_VPAC2_NF = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 1u),
+    TIVX_TARGET_ID_VPAC2_NF = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 1u),
 
     /*! \brief target ID for VPAC2 LDC1 */
-    TIVX_TARGET_ID_VPAC2_LDC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 2u),
+    TIVX_TARGET_ID_VPAC2_LDC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 2u),
 
     /*! \brief target ID for VPAC2 MSC1 */
-    TIVX_TARGET_ID_VPAC2_MSC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 3u),
+    TIVX_TARGET_ID_VPAC2_MSC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 3u),
 
     /*! \brief target ID for VPAC2 MSC2 */
-    TIVX_TARGET_ID_VPAC2_MSC2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 4u),
+    TIVX_TARGET_ID_VPAC2_MSC2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 4u),
 
     /*! \brief target ID for VPAC2 VISS1 */
-    TIVX_TARGET_ID_VPAC2_VISS1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 5u),
+    TIVX_TARGET_ID_VPAC2_VISS1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 5u),
 
-    /*! \brief target ID for VPAC2 FC */
-    TIVX_TARGET_ID_VPAC2_FC = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_0, 6u),
+    /*! \brief target ID for SDE */
+    TIVX_TARGET_ID_DMPAC_SDE = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 6u),
 
-    /*! \brief target ID for MCU4_1 */
-    TIVX_TARGET_ID_MCU4_1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 0u),
+    /*! \brief target ID for DOF */
+    TIVX_TARGET_ID_DMPAC_DOF = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 7u),
+
+    /*! \brief target ID for Display1 */
+    TIVX_TARGET_ID_DISPLAY1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 8u),
+
+    /*! \brief target ID for Display2 */
+    TIVX_TARGET_ID_DISPLAY2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 9u),
+
+    /*! \brief target ID for Display M2M1 */
+    TIVX_TARGET_ID_DISPLAY_M2M1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 10u),
+
+    /*! \brief target ID for Display M2M2 */
+    TIVX_TARGET_ID_DISPLAY_M2M2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 11u),
+
+    /*! \brief target ID for Display M2M3 */
+    TIVX_TARGET_ID_DISPLAY_M2M3 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 12u),
+
+    /*! \brief target ID for Display M2M4 */
+    TIVX_TARGET_ID_DISPLAY_M2M4 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 13u),
+
+    // /*! \brief target ID for MCU4-1 */
+    // TIVX_TARGET_ID_MCU4_1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 0u),
+
+    /*! \brief target ID for IPU1-1 */
+    TIVX_TARGET_ID_IPU1_1 = TIVX_TARGET_ID_MCU4_1,
+
+    /*! \brief target ID for VPAC2 NF */
+    TIVX_TARGET_ID_VPAC_NF = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 14u),
+
+    /*! \brief target ID for VPAC2 LDC1 */
+    TIVX_TARGET_ID_VPAC_LDC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 15u),
+
+    /*! \brief target ID for VPAC2 MSC1 */
+    TIVX_TARGET_ID_VPAC_MSC1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 16u),
+
+    /*! \brief target ID for VPAC2 MSC2 */
+    TIVX_TARGET_ID_VPAC_MSC2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 17u),
+
+    /*! \brief target ID for VPAC2 VISS1 */
+    TIVX_TARGET_ID_VPAC_VISS1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 18u),
+
+    /*! \brief target ID for Capture1 */
+    TIVX_TARGET_ID_CAPTURE1 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 19u),
+
+    /*! \brief target ID for Capture2 */
+    TIVX_TARGET_ID_CAPTURE2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 20u),
+
+    /*! \brief target ID for CSITX */
+    TIVX_TARGET_ID_CSITX = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 21u),
+
+    /*! \brief target ID for Capture3 */
+    TIVX_TARGET_ID_CAPTURE3 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 22u),
+
+    /*! \brief target ID for Capture4 */
+    TIVX_TARGET_ID_CAPTURE4 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 23u),
+
+    /*! \brief target ID for Capture5 */
+    TIVX_TARGET_ID_CAPTURE5 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 24u),
+
+    /*! \brief target ID for Capture6 */
+    TIVX_TARGET_ID_CAPTURE6 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 25u),
+
+    /*! \brief target ID for Capture7 */
+    TIVX_TARGET_ID_CAPTURE7 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 26u),
+
+    /*! \brief target ID for Capture8 */
+    TIVX_TARGET_ID_CAPTURE8 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 27u),
+
+    /*! \brief target ID for Capture9 */
+    TIVX_TARGET_ID_CAPTURE9 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 28u),
+
+    /*! \brief target ID for Capture10 */
+    TIVX_TARGET_ID_CAPTURE10 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 29u),
+
+    /*! \brief target ID for Capture11 */
+    TIVX_TARGET_ID_CAPTURE11 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 30u),
+
+    /*! \brief target ID for Capture12 */
+    TIVX_TARGET_ID_CAPTURE12 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 31u),
+
+    /*! \brief target ID for CSITX2 */
+    TIVX_TARGET_ID_CSITX2 = TIVX_MAKE_TARGET_ID(TIVX_CPU_ID_MCU4_1, 32u),
     
 } tivx_target_id_e;
 
@@ -334,7 +325,7 @@ typedef enum _tivx_target_id_e {
     {TIVX_TARGET_DSP_C7_1_PRI_6, (vx_enum)TIVX_TARGET_ID_DSP_C7_1_PRI_6},               \
     {TIVX_TARGET_DSP_C7_1_PRI_7, (vx_enum)TIVX_TARGET_ID_DSP_C7_1_PRI_7},               \
     {TIVX_TARGET_DSP_C7_1_PRI_8, (vx_enum)TIVX_TARGET_ID_DSP_C7_1_PRI_8},               \
-    {TIVX_TARGET_MCU2_0, (vx_enum)TIVX_TARGET_ID_MCU2_0},                               \
+    {TIVX_TARGET_MCU4_1, (vx_enum)TIVX_TARGET_ID_MCU4_1},                               \
     {TIVX_TARGET_MPU_0, (vx_enum)TIVX_TARGET_ID_MPU_0},                                 \
     {TIVX_TARGET_MPU_1, (vx_enum)TIVX_TARGET_ID_MPU_1},                                 \
     {TIVX_TARGET_MPU_2, (vx_enum)TIVX_TARGET_ID_MPU_2},                                 \
@@ -369,7 +360,6 @@ typedef enum _tivx_target_id_e {
     {TIVX_TARGET_DISPLAY_M2M3, (vx_enum)TIVX_TARGET_ID_DISPLAY_M2M3},                   \
     {TIVX_TARGET_DISPLAY_M2M4, (vx_enum)TIVX_TARGET_ID_DISPLAY_M2M4},                   \
     {TIVX_TARGET_CSITX2, (vx_enum)TIVX_TARGET_ID_CSITX2},                               \
-    {TIVX_TARGET_MCU2_1, (vx_enum)TIVX_TARGET_ID_MCU2_1},                               \
     {TIVX_TARGET_DMPAC_SDE, (vx_enum)TIVX_TARGET_ID_DMPAC_SDE},                         \
     {TIVX_TARGET_DMPAC_DOF, (vx_enum)TIVX_TARGET_ID_DMPAC_DOF},                         \
     {TIVX_TARGET_MCU3_0, (vx_enum)TIVX_TARGET_ID_MCU3_0},                               \
