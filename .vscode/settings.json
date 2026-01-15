@@ -1,0 +1,34 @@
+{
+    // GitHub Authentication Settings
+    // Enable multiple GitHub accounts in VS Code
+    "github.gitAuthentication": true,
+    
+    // GitHub Pull Requests and Issues extension settings
+    "githubPullRequests.createOnPublishBranch": "ask",
+    "githubPullRequests.queries": [
+        {
+            "label": "Assigned To Me",
+            "query": "is:open assignee:${user}"
+        },
+        {
+            "label": "Created By Me",
+            "query": "is:open author:${user}"
+        },
+        {
+            "label": "Waiting For My Review",
+            "query": "is:open review-requested:${user}"
+        }
+    ],
+    
+    // Git settings for multiple accounts
+    // Disable commit signing to avoid issues when switching between accounts
+    // with different GPG keys. Enable per-repository if needed.
+    "git.enableCommitSigning": false,
+    "git.requireGitUserConfig": true
+    
+    // Users can sign in with multiple accounts through:
+    // 1. Command Palette (Ctrl+Shift+P / Cmd+Shift+P)
+    // 2. Type "GitHub: Sign in"
+    // 3. Sign in with additional accounts
+    // 4. Switch between accounts using the account switcher in the status bar
+}
