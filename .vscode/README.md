@@ -43,11 +43,11 @@ Once you have multiple accounts added:
 
 To get the most out of multiple GitHub accounts, install these VS Code extensions:
 
-- **GitHub Pull Requests and Issues** (GitHub.vscode-pull-request-github)
+- **GitHub Pull Requests and Issues** (github.vscode-pull-request-github)
   - Manage PRs and issues directly from VS Code
   - Already configured in settings.json
   
-- **GitHub Repositories** (GitHub.remotehub)
+- **GitHub Repositories** (github.remotehub)
   - Browse and edit GitHub repositories directly in VS Code
 
 ## Account-Specific Git Configuration

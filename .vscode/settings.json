@@ -21,15 +21,14 @@
     ],
     
     // Git settings for multiple accounts
+    // Disable commit signing to avoid issues when switching between accounts
+    // with different GPG keys. Enable per-repository if needed.
     "git.enableCommitSigning": false,
-    "git.requireGitUserConfig": true,
+    "git.requireGitUserConfig": true
     
-    // Allow using multiple GitHub accounts
     // Users can sign in with multiple accounts through:
     // 1. Command Palette (Ctrl+Shift+P / Cmd+Shift+P)
     // 2. Type "GitHub: Sign in"
     // 3. Sign in with additional accounts
     // 4. Switch between accounts using the account switcher in the status bar
-    
-    "workbench.enableExperiments": true
 }
