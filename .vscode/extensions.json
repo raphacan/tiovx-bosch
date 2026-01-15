@@ -1,0 +1,19 @@
+{
+    // VS Code Extension Recommendations for GitHub Multi-Account Support
+    "recommendations": [
+        // GitHub Pull Requests and Issues
+        // Manage pull requests and issues from multiple GitHub accounts
+        "github.vscode-pull-request-github",
+        
+        // GitHub Repositories
+        // Browse and edit GitHub repositories directly in VS Code
+        "github.remotehub",
+        
+        // GitLens - Git supercharged
+        // Enhanced Git capabilities with better visualization
+        "eamodio.gitlens"
+    ],
+    
+    // Extensions that are good to have but not required
+    "unwantedRecommendations": []
+}
